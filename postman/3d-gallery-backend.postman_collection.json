@@ -1,0 +1,1223 @@
+{
+  "info": {
+    "name": "3D Gallery Backend (Local)",
+    "_postman_id": "93b8fb5e-9f64-4f9a-ae90-3b57d67d2c77",
+    "description": "Collection to test the Node.js backend running on http://localhost:4000.\nUse /auth/login to capture access_token into {{token}}.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST /auth/signup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/signup",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "signup"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /auth/login (captures token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "try {",
+                  "  const json = pm.response.json();",
+                  "  const token = json?.session?.access_token || json?.access_token || json?.data?.session?.access_token;",
+                  "  const refresh = json?.session?.refresh_token || json?.refresh_token || json?.data?.session?.refresh_token;",
+                  "  if (token) pm.environment.set('token', token);",
+                  "  if (refresh) pm.environment.set('refresh_token', refresh);",
+                  "} catch(e) { console.error(e); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /auth/refresh",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/refresh",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /auth/logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "GET /users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /users",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PATCH /users/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/{{id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /users/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/{{id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rooms",
+      "item": [
+        {
+          "name": "GET /rooms",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rooms",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "rooms"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /rooms",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rooms",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "rooms"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PATCH /rooms/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rooms/{{id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "rooms",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /rooms/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rooms/{{id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "rooms",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Room Collaborators",
+      "item": [
+        {
+          "name": "GET /room-collaborators",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/room-collaborators",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "room-collaborators"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /room-collaborators",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/room-collaborators",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "room-collaborators"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PATCH /room-collaborators/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/room-collaborators/{{id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "room-collaborators",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /room-collaborators/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/room-collaborators/{{id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "room-collaborators",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Images",
+      "item": [
+        {
+          "name": "GET /images",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/images",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "images"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /images",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/images",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "images"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PATCH /images/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/images/{{id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "images",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /images/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/images/{{id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "images",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Object3D",
+      "item": [
+        {
+          "name": "GET /object3d",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/object3d",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "object3d"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /object3d",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/object3d",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "object3d"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PATCH /object3d/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/object3d/{{id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "object3d",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /object3d/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/object3d/{{id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "object3d",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Textures",
+      "item": [
+        {
+          "name": "GET /textures",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/textures",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "textures"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /textures",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/textures",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "textures"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PATCH /textures/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/textures/{{id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "textures",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /textures/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/textures/{{id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "textures",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Collections",
+      "item": [
+        {
+          "name": "GET /collections",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/collections",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "collections"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /collections",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/collections",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "collections"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PATCH /collections/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/collections/{{id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "collections",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /collections/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/collections/{{id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "collections",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Collection Items",
+      "item": [
+        {
+          "name": "GET /collection-items",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/collection-items",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "collection-items"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /collection-items",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/collection-items",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "collection-items"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PATCH /collection-items/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/collection-items/{{id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "collection-items",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /collection-items/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/collection-items/{{id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "collection-items",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Magazines",
+      "item": [
+        {
+          "name": "GET /magazines",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/magazines",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "magazines"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /magazines",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/magazines",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "magazines"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PATCH /magazines/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/magazines/{{id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "magazines",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /magazines/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/magazines/{{id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "magazines",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Magazine Items",
+      "item": [
+        {
+          "name": "GET /magazine-items",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/magazine-items",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "magazine-items"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /magazine-items",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/magazine-items",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "magazine-items"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PATCH /magazine-items/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/magazine-items/{{id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "magazine-items",
+                "{{id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /magazine-items/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/magazine-items/{{id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "magazine-items",
+                "{{id}}"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
