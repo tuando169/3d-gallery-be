@@ -1,6 +1,7 @@
 // controllers/rooms.js
 import * as supabaseService from '../services/supabaseService.js';
 import { getUserIdFromToken, supabaseAdmin } from '../config/supabase.js'; // NEW
+import * as userService from '../services/user.service.js';
 
 const BUCKET = 'roomjson';
 
@@ -41,57 +42,64 @@ async function uploadRoomJSONToStorage(owner_id, slugOrId, file) {
     .getPublicUrl(filepath);
   return { path: filepath, publicUrl: pub?.publicUrl || null };
 }
-
-export const get = async (req, res, next) => {
+export const getAll = async (req, res, next) => {
   try {
-    const { room_id, page = 1, page_size = 10 } = req.query;
-    const hasToken = !!req.accessToken;
+    const { page = 1, page_size = 10 } = req.query;
+    const hasToken = Boolean(req.accessToken);
 
     const p = Number(page);
-    const s = Number(page_size);
-    const from = (p - 1) * s;
-    const to = from + s - 1;
+    const ps = Number(page_size);
+    const from = (p - 1) * ps;
+    const to = from + ps - 1;
 
-    // ========= GET ONE by id =========
-    if (room_id) {
-      if (!hasToken) {
-        // no token -> admin
-        const data = await supabaseService
-          .allItems('rooms', '*', (q) => q.eq('id', room_id))
-          .then((arr) => arr[0] || null);
-        return res.json(data);
-      }
+    const data = hasToken
+      ? await supabaseService.listItems(req.accessToken, 'rooms', '*', (q) =>
+          q.range(from, to)
+        )
+      : await supabaseService.allItems('rooms', '*', (q) => q.range(from, to));
 
-      // with token -> RLS
-      const data = await supabaseService.getById(
-        req.accessToken,
-        'rooms',
-        room_id
-      );
-      return res.json(data);
-    }
+    // ====== Lấy thông tin tác giả song song, hiệu quả ======
+    const roomsWithAuthor = await Promise.all(
+      data.map(async (room) => {
+        const ownerId = room.owner_id;
 
-    // ========= GET ALL (NO TOKEN) =========
-    if (!hasToken) {
-      const data = await supabaseService.allItems('rooms', '*', (q) =>
-        q.range(from, to)
-      );
-      return res.json(data);
-    }
+        let author = null;
+        if (ownerId) {
+          author = await userService.getUserById(ownerId).catch(() => null);
+        }
 
-    // ========= GET ALL (WITH TOKEN / RLS) =========
-    const data = await supabaseService.listItems(
-      req.accessToken,
-      'rooms',
-      '*',
-      (q) => q.range(from, to)
+        return {
+          ...room,
+          author: author?.name || null,
+        };
+      })
     );
+
+    return res.json(roomsWithAuthor);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getOne = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const hasToken = Boolean(req.accessToken);
+
+    if (!id) return res.status(400).json({ error: 'Missing room id' });
+
+    const data = hasToken
+      ? await supabaseService.getById(req.accessToken, 'rooms', id)
+      : (
+          await supabaseService.allItems('rooms', '*', (q) => q.eq('id', id))
+        )[0] || null;
 
     return res.json(data);
   } catch (err) {
     next(err);
   }
 };
+
 export const create = async (req, res, next) => {
   try {
     let storageMeta = null;
