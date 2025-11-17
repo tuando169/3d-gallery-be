@@ -1,5 +1,7 @@
 // controllers/images.js
+import axios from 'axios';
 import * as supabaseService from '../services/supabaseService.js';
+import FormData from 'form-data';
 
 const TABLE = 'images';
 const BUCKET = 'images';
@@ -80,6 +82,21 @@ export const create = async (req, res, next) => {
         '_'
       );
       const path = `${Date.now()}_${safeName}`;
+
+      const formData = new FormData();
+
+      formData.append('image', file.buffer, {
+        filename: file.originalname,
+        contentType: file.mimetype,
+      });
+
+      const flaskRes = await axios.post(
+        'https://zipppier-henry-bananas.ngrok-free.dev/analyze',
+        formData,
+        { headers: formData.getHeaders() }
+      );
+
+      console.log('Flask response:', flaskRes.data);
 
       // Upload
       await supabaseService.uploadToBucket(

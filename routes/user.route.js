@@ -6,6 +6,7 @@ const r = Router();
 r.use(requireAuth);
 
 r.get('/', c.list);
+r.get('/:id', c.getOne);
 r.post('/', c.create);
 r.patch('/:id', c.update);
 r.delete('/:id', c.remove);

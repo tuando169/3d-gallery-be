@@ -1,9 +1,9 @@
-import * as supabaseService from '../services/authService.js';
+import * as authService from '../services/auth.service.js';
 
 export const signup = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    const data = await supabaseService.signup({ email, password });
+    const data = await authService.signup({ email, password });
     res.status(201).json(data);
   } catch (err) {
     next(err);
@@ -13,7 +13,7 @@ export const signup = async (req, res, next) => {
 export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    const data = await supabaseService.login({ email, password });
+    const data = await authService.login({ email, password });
     res.json(data);
   } catch (err) {
     next(err);
@@ -23,7 +23,7 @@ export const login = async (req, res, next) => {
 export const refresh = async (req, res, next) => {
   try {
     const { refresh_token } = req.body;
-    const data = await supabaseService.refresh({ refresh_token });
+    const data = await authService.refresh({ refresh_token });
     res.json(data);
   } catch (err) {
     next(err);
@@ -36,7 +36,7 @@ export const logout = async (req, res, next) => {
     const token = auth.startsWith('Bearer ')
       ? auth.slice('Bearer '.length)
       : null;
-    const data = await supabaseService.logout(token);
+    const data = await authService.logout(token);
     res.json(data);
   } catch (err) {
     next(err);

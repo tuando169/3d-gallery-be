@@ -2,8 +2,7 @@
 import path from 'node:path';
 import multer from 'multer';
 import * as supabaseService from '../services/supabaseService.js';
-import { getUserIdFromToken, supabaseAdmin } from '../config/supabase.js';
-import { log } from 'node:console';
+import { supabaseAdmin } from '../config/supabase.js';
 
 const BUCKET = 'textures';
 const MAX_SIZE = 50 * 1024 * 1024; // 50MB
@@ -55,7 +54,11 @@ export const get = async (req, res, next) => {
         return res.json(data);
       }
 
-      const data = await supabaseService.getById(req.accessToken, 'textures', texture_id);
+      const data = await supabaseService.getById(
+        req.accessToken,
+        'textures',
+        texture_id
+      );
       return res.json(data);
     }
 
@@ -86,7 +89,8 @@ export const get = async (req, res, next) => {
 export const create = async (req, res, next) => {
   try {
     const name = req.body.title || 'Untitled Texture';
-    const owner_id = await getUserIdFromToken(req);
+    // const owner_id = await getUserIdFromToken(req);
+    const owner_id = req.body.owner_id; // Hoặc lấy từ token nếu có
     const object3d_id = req.body.texture_for;
 
     if (!owner_id) {
@@ -152,7 +156,11 @@ export const create = async (req, res, next) => {
       orm_url: orm_url || null,
     };
 
-    const data = await supabaseService.insertItem(req.accessToken, 'textures', payload);
+    const data = await supabaseService.insertItem(
+      req.accessToken,
+      'textures',
+      payload
+    );
     res.status(201).json(data);
   } catch (err) {
     next(err);

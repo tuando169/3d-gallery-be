@@ -1,6 +1,6 @@
 // controllers/rooms.js
 import * as supabaseService from '../services/supabaseService.js';
-import { getUserIdFromToken, supabaseAdmin } from '../config/supabase.js'; // NEW
+import { supabaseAdmin } from '../config/supabase.js'; // NEW
 import * as userService from '../services/user.service.js';
 
 const BUCKET = 'roomjson';
@@ -138,18 +138,18 @@ export const create = async (req, res, next) => {
       req.body
     );
 
-    // Upload bản gốc vào storage nếu có file upload
-    if (req.file) {
-      const owner_id = await getUserIdFromToken(req);
-      if (owner_id) {
-        const slugOrId = created?.slug || created?.id;
-        storageMeta = await uploadRoomJSONToStorage(
-          owner_id,
-          slugOrId,
-          req.file
-        );
-      }
-    }
+    // // Upload bản gốc vào storage nếu có file upload
+    // if (req.file) {
+    //   const owner_id = await getUserIdFromToken(req);
+    //   if (owner_id) {
+    //     const slugOrId = created?.slug || created?.id;
+    //     storageMeta = await uploadRoomJSONToStorage(
+    //       owner_id,
+    //       slugOrId,
+    //       req.file
+    //     );
+    //   }
+    // }
 
     res.status(201).json({
       ...created,
