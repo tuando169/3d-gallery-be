@@ -1,19 +1,19 @@
 // controllers/images.js
-import axios from 'axios';
-import * as supabaseService from '../services/supabaseService.js';
-import FormData from 'form-data';
+import axios from "axios";
+import * as supabaseService from "../services/supabaseService.js";
+import FormData from "form-data";
 
-const TABLE = 'images';
-const BUCKET = 'images';
+const TABLE = "images";
+const BUCKET = "images";
 
 // Chỉ giữ đúng các cột hiện có trong schema images
 const ALLOWED_DB_FIELDS = new Set([
-  'file_url',
-  'width',
-  'height',
-  'title',
-  'description',
-  'room_id',
+  "file_url",
+  "width",
+  "height",
+  "title",
+  "description",
+  "room_id",
   // owner_id, created_at thường do RLS/DEFAULT xử lý; thêm nếu bạn muốn set thủ công
 ]);
 
@@ -36,7 +36,7 @@ export const list = async (req, res, next) => {
     const data = await supabaseService.listItems(
       req.accessToken,
       TABLE,
-      '*',
+      "*",
       (q) => q.range(from, to)
     );
 
@@ -77,26 +77,32 @@ export const create = async (req, res, next) => {
     // Trường hợp có upload file
     if (hasFile) {
       const file = req.file;
-      const safeName = (file.originalname || 'upload.bin').replace(
+      const safeName = (file.originalname || "upload.bin").replace(
         /[^\w.\-]/g,
-        '_'
+        "_"
       );
       const path = `${Date.now()}_${safeName}`;
 
       const formData = new FormData();
 
-      formData.append('image', file.buffer, {
+      formData.append("image", file.buffer, {
         filename: file.originalname,
         contentType: file.mimetype,
       });
 
-      const flaskRes = await axios.post(
-        'https://zipppier-henry-bananas.ngrok-free.dev/analyze',
+      const imageAnalyzeRes = await axios.post(
+        "https://zipppier-henry-bananas.ngrok-free.dev/analyze",
         formData,
         { headers: formData.getHeaders() }
       );
 
-      console.log('Flask response:', flaskRes.data);
+      if (
+        imageAnalyzeRes &&
+        imageAnalyzeRes.status >= 200 &&
+        imageAnalyzeRes.status < 300
+      ) {
+        return res.status(422).json({ message: "Media file is not approved!" });
+      }
 
       // Upload
       await supabaseService.uploadToBucket(
@@ -171,7 +177,7 @@ export const remove = async (req, res, next) => {
   try {
     const media_id = req.query.media_id;
     console.log(media_id);
-    if (!media_id) throw new Error('media_id is required');
+    if (!media_id) throw new Error("media_id is required");
 
     const data = await supabaseService.deleteById(
       req.accessToken,

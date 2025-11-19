@@ -1,6 +1,6 @@
 // config/supabase.js
-import { createClient } from '@supabase/supabase-js';
-import { config } from './env.js';
+import { createClient } from "@supabase/supabase-js";
+import { config } from "./env.js";
 
 /**
  * =======================================
@@ -26,7 +26,7 @@ export const supabaseAdmin = createClient(
  * (Dùng cho RLS)
  * =======================================
  */
-export const getUserClient = (accessToken = '') => {
+export const getUserClient = (accessToken = "") => {
   return createClient(config.supabaseUrl, config.anonKey, {
     global: {
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
@@ -52,15 +52,25 @@ export const supabasePublic = createClient(config.supabaseUrl, config.anonKey, {
  * =======================================
  */
 export const getUserFromRequest = async (req) => {
-  const auth = req.headers.authorization || '';
-  const token = auth.startsWith('Bearer ')
-    ? auth.slice('Bearer '.length)
+  const auth = req.headers.authorization || "";
+
+  const token = auth.startsWith("Bearer ")
+    ? auth.slice(7) // 'Bearer '.length là 7
     : null;
 
-  if (!token) return null;
+  if (!token) {
+    // Không có token
+    return { user: null, error: "No token provided" };
+  }
 
   const { data, error } = await supabaseAdmin.auth.getUser(token);
-  if (error) return null;
 
-  return data.user; // { id, email, ... }
+  if (error) {
+    // Token hết hạn hoặc không hợp lệ
+    // Console.log lỗi ra để debug nếu cần
+    console.error("Auth Error:", error.message);
+    return { user: null, error: error.message };
+  }
+
+  return { user: data.user, error: null };
 };
