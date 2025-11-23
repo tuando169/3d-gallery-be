@@ -4,11 +4,11 @@ const TABLE = 'magazines';
 
 export const NewsService = {
   async list(token: string) {
-    return await supabaseService.listItems(token, TABLE, '*', (q: any) => q);
+    return await supabaseService.findAllAdmin( TABLE, '*', (q: any) => q);
   },
 
   async create(token: string, body: any) {
-    return await supabaseService.insertItem(token, TABLE, body);
+    return await supabaseService.create(token, TABLE, body);
   },
 
   async update(token: string, id: string, body: any) {

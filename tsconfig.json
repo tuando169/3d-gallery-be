@@ -2,6 +2,8 @@
   "compilerOptions": {
     "module": "CommonJS",
     "target": "ES2016",
+    "rootDir": "src",
+    "outDir": "dist",
     "noImplicitAny": true,
     "removeComments": true,
     "strict": true,

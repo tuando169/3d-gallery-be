@@ -7,7 +7,7 @@ export const UserController = {
   /** GET /users */
   async list(req: Request, res: Response, next: NextFunction) {
     try {
-      const data = await supabaseService.listItems(
+      const data = await supabaseService.findMany(
         req.accessToken!,
         TABLE,
         '*',
@@ -23,7 +23,7 @@ export const UserController = {
   /** GET /users/:id */
   async getOne(req: Request, res: Response, next: NextFunction) {
     try {
-      const data = await supabaseService.getById(
+      const data = await supabaseService.findById(
         req.accessToken!,
         TABLE,
         req.params.id
@@ -42,7 +42,7 @@ export const UserController = {
   /** POST /users */
   async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const newUser = await supabaseService.insertItem(
+      const newUser = await supabaseService.create(
         req.accessToken!,
         TABLE,
         req.body

@@ -7,7 +7,7 @@ const BUCKET = 'object3d';
 export const Object3DService = {
   /** LIST */
   async list(token: string) {
-    return await supabaseService.listItems(token, TABLE, '*', (q) => q);
+    return await supabaseService.findMany(token, TABLE, '*', (q) => q);
   },
 
   /** UPLOAD FILE TO STORAGE */
@@ -56,7 +56,7 @@ export const Object3DService = {
       source_type: body.source_type || 'upload',
     };
 
-    return await supabaseService.insertItem(token, TABLE, payload);
+    return await supabaseService.create(token, TABLE, payload);
   },
 
   /** UPDATE */

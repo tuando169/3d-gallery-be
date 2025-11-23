@@ -54,10 +54,10 @@ export const RoomService = {
     const to = from + pageSize - 1;
 
     const data = token
-      ? await supabaseService.listItems(token, TABLE, "*", (q: any) =>
+      ? await supabaseService.findMany(token, TABLE, "*", (q: any) =>
           q.range(from, to)
         )
-      : await supabaseService.allItems(TABLE, "*", (q: any) =>
+      : await supabaseService.findAllAdmin(TABLE, "*", (q: any) =>
           q.range(from, to)
         );
 
@@ -81,10 +81,10 @@ export const RoomService = {
   /** GET ONE ROOM */
   async getOne(token: string | null, roomId: string) {
     if (token) {
-      return await supabaseService.getById(token, TABLE, roomId);
+      return await supabaseService.findById(token, TABLE, roomId);
     }
 
-    const rows = await supabaseService.allItems(TABLE, "*", (q: any) =>
+    const rows = await supabaseService.findAllAdmin(TABLE, "*", (q: any) =>
       q.eq("id", roomId)
     );
     return rows[0] || null;
@@ -114,7 +114,7 @@ export const RoomService = {
 
     normalizeTags(body);
 
-    const created = await supabaseService.insertItem(token, TABLE, body);
+    const created = await supabaseService.create(token, TABLE, body);
 
     // (optional) upload JSON file to storage
     // if (file) {
