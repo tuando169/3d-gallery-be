@@ -1,33 +1,32 @@
 {
-  "name": "3d-gallery-be",
+  "name": "vexpo-be",
   "version": "1.0.0",
-  "type": "module",
-  "main": "app.js",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
   "scripts": {
-    "dev": "tsnd --respawn --pretty --transpile-only ./src/index.ts"
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.75.1",
-    "axios": "^1.7.7",
-    "cors": "^2.8.5",
-    "dotenv": "^16.6.1",
-    "express": "^4.19.2",
-    "form-data": "^4.0.4",
-    "helmet": "^7.1.0",
-    "http-errors": "^2.0.0",
-    "mime-types": "^3.0.1",
-    "morgan": "^1.10.0",
-    "multer": "^1.4.5-lts.1",
-    "pino": "^9.4.0",
-    "pino-http": "^11.0.0",
-    "sharp": "^0.34.4",
-    "slugify": "^1.6.6",
-    "zod": "^3.23.8"
+    "dev": "tsnd --respawn --pretty --transpile-only ./src/index.ts",
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.5",
+    "@types/multer": "^2.0.0",
     "@types/node": "^24.10.1",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.84.0",
+    "axios": "^1.13.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "form-data": "^4.0.5",
+    "helmet": "^8.1.0",
+    "multer": "^2.0.2"
   }
 }
