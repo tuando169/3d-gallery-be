@@ -4,10 +4,7 @@ import { ImageService } from '../services/imageService';
 export const ImageController = {
   async list(req: Request, res: Response, next: NextFunction) {
     try {
-      const page = Number(req.query.page) || 1;
-      const pageSize = Number(req.query.page_size) || 10;
-
-      const data = await ImageService.list(req.accessToken!, page, pageSize);
+      const data = await ImageService.getAll(req.accessToken!);
 
       res.json(data);
     } catch (err) {
@@ -46,7 +43,7 @@ export const ImageController = {
       const mediaId = req.query.media_id as string;
       if (!mediaId) throw new Error('media_id is required');
 
-      const data = await ImageService.remove(req.accessToken!, mediaId);
+      const data = await ImageService.delete(req.accessToken!, mediaId);
       res.json(data);
     } catch (err) {
       next(err);

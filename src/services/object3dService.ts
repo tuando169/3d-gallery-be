@@ -1,4 +1,6 @@
 import { supabaseAdmin } from '../config/supabase';
+import { Object3DModel } from '../models/object3dModel';
+import { getUserFromToken } from '../util';
 import { supabaseService } from './supabaseService';
 
 const TABLE = 'object3d';
@@ -6,7 +8,7 @@ const BUCKET = 'object3d';
 
 export const Object3DService = {
   /** LIST */
-  async list(token: string) {
+  async getAll(token: string): Promise<Object3DModel[]> {
     return await supabaseService.findMany(token, TABLE, '*', (q) => q);
   },
 
@@ -35,28 +37,27 @@ export const Object3DService = {
   /** CREATE */
   async create(
     token: string,
-    body: any,
-    file: Express.Multer.File | undefined,
-    userId?: string
-  ) {
+    body: Partial<Object3DModel>,
+    file?: Express.Multer.File
+  ): Promise<Object3DModel> {
     if (!file) throw { status: 400, message: `Missing file "model"` };
 
-    const ownerId = userId || body.owner_id;
+    const ownerId = (await getUserFromToken(token))?.user?.id;
     if (!ownerId)
       throw { status: 400, message: 'owner_id is required (or login first)' };
 
     const fileUrl = await this.uploadGLB(ownerId, file);
 
-    const payload = {
+    const payload: Partial<Object3DModel> = {
       owner_id: ownerId,
-      room_id: body.room_id || null,
+      room_id: body.room_id,
       file_url: fileUrl,
-      poly_count: body.poly_count ? Number(body.poly_count) : null,
-      bounds: body.bounds ? JSON.parse(body.bounds) : null,
+      poly_count: body.poly_count ? Number(body.poly_count) : undefined,
+      bounds: body.bounds,
       source_type: body.source_type || 'upload',
     };
 
-    return await supabaseService.create(token, TABLE, payload);
+    return await supabaseService.create<Object3DModel>(token, TABLE, payload);
   },
 
   /** UPDATE */
@@ -66,7 +67,7 @@ export const Object3DService = {
     body: any,
     file?: Express.Multer.File,
     userId?: string
-  ) {
+  ): Promise<Object3DModel> {
     const patch: any = { ...body };
 
     if (patch.poly_count) patch.poly_count = Number(patch.poly_count);
@@ -83,7 +84,7 @@ export const Object3DService = {
   },
 
   /** DELETE */
-  async remove(token: string, id: string) {
+  async delete(token: string, id: string): Promise<boolean> {
     return await supabaseService.deleteById(token, TABLE, id);
   },
 };

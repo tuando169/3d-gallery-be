@@ -2,9 +2,9 @@ import type { Request, Response, NextFunction } from 'express';
 import { Object3DService } from '../services/object3dService';
 
 export const Object3DController = {
-  async list(req: Request, res: Response, next: NextFunction) {
+  async getAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const data = await Object3DService.list(req.accessToken!);
+      const data = await Object3DService.getAll(req.accessToken!);
       res.json(data);
     } catch (err) {
       next(err);
@@ -16,8 +16,7 @@ export const Object3DController = {
       const data = await Object3DService.create(
         req.accessToken!,
         req.body,
-        req.file,
-        req.user?.id
+        req.file
       );
       res.status(201).json(data);
     } catch (err) {
@@ -31,8 +30,7 @@ export const Object3DController = {
         req.accessToken!,
         req.params.id,
         req.body,
-        req.file,
-        req.user?.id
+        req.file
       );
       res.json(data);
     } catch (err) {
@@ -42,7 +40,7 @@ export const Object3DController = {
 
   async remove(req: Request, res: Response, next: NextFunction) {
     try {
-      const data = await Object3DService.remove(
+      const data = await Object3DService.delete(
         req.accessToken!,
         req.params.id
       );

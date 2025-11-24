@@ -8,42 +8,18 @@ import { ImageAnalyzeModel } from '../models/imageAnalyzeModel';
 const TABLE = 'images';
 const BUCKET = 'images';
 
-const ALLOWED_DB_FIELDS = new Set([
-  'file_url',
-  'width',
-  'height',
-  'title',
-  'description',
-  'room_id',
-]);
-
-function pickAllowed(obj: Record<string, any>) {
-  const out: Record<string, any> = {};
-  for (const [k, v] of Object.entries(obj || {})) {
-    if (v !== undefined && v !== null && ALLOWED_DB_FIELDS.has(k)) {
-      out[k] = v;
-    }
-  }
-  return out;
-}
-
 export const ImageService = {
   /** SERVICE: list images */
-  async list(
-    token: string,
-    page: number,
-    pageSize: number
-  ): Promise<ImageModel[]> {
-    const from = (page - 1) * pageSize;
-    const to = from + pageSize - 1;
-
-    return await supabaseService.findAllAdmin(TABLE, '*', (q: any) =>
-      q.range(from, to)
-    );
+  async getAll(token: string): Promise<ImageModel[]> {
+    return await supabaseService.findAllAdmin(TABLE, '*', (q: any) => q);
   },
 
   /** SERVICE: handle file upload + moderation + insert record */
-  async create(token: string, body: any, file?: Express.Multer.File) {
+  async create(
+    token: string,
+    body: any,
+    file?: Express.Multer.File
+  ): Promise<ImageModel> {
     const hasFile = !!file;
     const hasUrl = !!body?.file_url;
 
@@ -101,33 +77,42 @@ export const ImageService = {
         ? supabaseService.getPublicUrl(BUCKET, path)
         : await supabaseService.createSignedUrl(BUCKET, path);
 
-      const payload = pickAllowed({
+      const payload: Partial<ImageModel> = {
         file_url: fileUrl,
         ...body,
-      });
+      };
 
-      return await supabaseService.create(token, TABLE, payload);
+      return await supabaseService.create<ImageModel>(token, TABLE, payload);
     }
 
     // =====================
     // CASE 2: use file_url
     // =====================
-    const payload = pickAllowed(body);
+    const payload: Partial<ImageModel> = {
+      ...body,
+    };
     if (!payload.file_url) {
       throw { status: 400, message: `"file_url" missing.` };
     }
 
-    return await supabaseService.create(token, TABLE, payload);
+    return await supabaseService.create<ImageModel>(token, TABLE, payload);
   },
 
   /** SERVICE: update */
-  async update(token: string, id: string, patch: any) {
-    const payload = pickAllowed(patch);
-    return await supabaseService.updateById(token, TABLE, id, payload);
+  async update(token: string, id: string, patch: any): Promise<ImageModel> {
+    const payload: Partial<ImageModel> = {
+      ...patch,
+    };
+    return await supabaseService.updateById<ImageModel>(
+      token,
+      TABLE,
+      id,
+      payload
+    );
   },
 
   /** SERVICE: delete */
-  async remove(token: string, mediaId: string) {
+  async delete(token: string, mediaId: string): Promise<boolean> {
     return await supabaseService.deleteById(token, TABLE, mediaId);
   },
 };

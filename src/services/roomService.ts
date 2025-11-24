@@ -1,129 +1,106 @@
-import { supabaseAdmin } from "../config/supabase";
-import { supabaseService } from "./supabaseService";
-import { userService } from "./userService";
+import { supabaseService } from './supabaseService';
+import { userService } from './userService';
+import { supabaseAdmin } from '../config/supabase';
+import { getUserFromToken } from '../util';
+import { Request } from 'express';
+import { RoleEnum } from '../constants/role';
+import { VisibilityEnum } from '../constants/visibility';
+import { RoomModel } from '../models/roomModel';
 
-const TABLE = "rooms";
-const BUCKET = "roomjson";
+const TABLE = 'rooms';
+const BUCKET = 'roomjson';
 
-// =======================
-// Helpers
-// =======================
+function isAdmin(user: any) {
+  return user?.user_metadata?.role === 'admin';
+}
+
 function normalizeTags(body: any) {
-  if (typeof body.tags === "string") {
+  if (typeof body.tags === 'string') {
     const trimmed = body.tags.trim();
     body.tags = trimmed
       ? trimmed
-          .split(",")
+          .split(',')
           .map((s: string) => s.trim())
           .filter(Boolean)
       : [];
   }
 }
 
-// Upload Room JSON buffer lên Supabase Storage
-async function uploadRoomJSONToStorage(
-  ownerId: string,
-  slugOrId: string | number,
-  file: Express.Multer.File
-) {
-  const safeSlug = (slugOrId || "room")
-    .toString()
-    .replace(/[^a-z0-9-_]/gi, "_")
-    .toLowerCase();
-
-  const filename = `${Date.now()}_${safeSlug}.json`;
-  const path = `${ownerId}/${filename}`;
-
-  const up = await supabaseAdmin.storage
-    .from(BUCKET)
-    .upload(path, file.buffer, {
-      contentType: "application/json",
-      upsert: false,
-    });
-
-  if (up.error) throw up.error;
-
-  const { data: pub } = supabaseAdmin.storage.from(BUCKET).getPublicUrl(path);
-  return { path, publicUrl: pub?.publicUrl ?? null };
-}
-
 export const RoomService = {
   /** LIST ROOMS */
-  async list(token: string | null, page: number, pageSize: number) {
-    const from = (page - 1) * pageSize;
-    const to = from + pageSize - 1;
+  async getAll(token: string): Promise<RoomModel[]> {
+    try {
+      const user = await getUserFromToken(token);
+      const isAdminUser = isAdmin(user.user);
 
-    const data = token
-      ? await supabaseService.findMany(token, TABLE, "*", (q: any) =>
-          q.range(from, to)
-        )
-      : await supabaseService.findAllAdmin(TABLE, "*", (q: any) =>
-          q.range(from, to)
+      let data;
+
+      if (isAdminUser) {
+        data = await supabaseService.findAllAdmin(TABLE, '*', (q) => q);
+      } else {
+        const publicRoom = await supabaseService.findAllAdmin(TABLE, '*', (q) =>
+          q.eq('visibility', VisibilityEnum.Public)
         );
+        const userRoom = await supabaseService.findMany(token, TABLE, '*');
+        // Gộp 2 mảng và loại bỏ trùng lặp (nếu có)
+        const combinedRooms = [...publicRoom, ...userRoom];
+        const uniqueRoomsMap = new Map();
+        for (const room of combinedRooms) {
+          uniqueRoomsMap.set(room.id, room);
+        }
+        data = Array.from(uniqueRoomsMap.values());
+      }
 
-    // fetch author info
-    return await Promise.all(
-      data.map(async (room: any) => {
-        if (!room.owner_id) return { ...room, author: null };
+      const ownerIds = Array.from(
+        new Set(data.map((r: any) => r.owner_id).filter(Boolean))
+      );
 
-        const author = await userService
-          .getById(room.owner_id)
-          .catch(() => null);
+      const authors = await Promise.all(
+        ownerIds.map((id) => userService.getById(id).catch(() => null))
+      );
 
-        return {
-          ...room,
-          author: author?.name ?? null,
-        };
-      })
-    );
+      const authorMap = Object.fromEntries(
+        authors.map((u) => [u?.id, u?.name])
+      );
+
+      return data.map((room: any) => ({
+        ...room,
+        author: authorMap[room.owner_id] ?? null,
+      }));
+    } catch (err) {
+      throw err;
+    }
   },
 
   /** GET ONE ROOM */
-  async getOne(token: string | null, roomId: string) {
-    if (token) {
-      return await supabaseService.findById(token, TABLE, roomId);
+  async getOne(token: string, roomId: string): Promise<RoomModel | undefined> {
+    const user = await getUserFromToken(token);
+    if (isAdmin(user.user)) {
+      const rooms = await supabaseService.findAllAdmin(TABLE, '*', (q: any) =>
+        q.eq('id', roomId)
+      );
+      return rooms[0] || null;
     }
 
-    const rows = await supabaseService.findAllAdmin(TABLE, "*", (q: any) =>
-      q.eq("id", roomId)
-    );
-    return rows[0] || null;
+    return supabaseService.findById(token, TABLE, roomId);
   },
 
   /** CREATE ROOM */
-  async create(token: string, body: any, file?: Express.Multer.File) {
-    let storageMeta: any = null;
+  async create(
+    token: string,
+    body: any,
+    file?: Express.Multer.File
+  ): Promise<RoomModel | undefined> {
+    const user = await getUserFromToken(token);
+    if (!isAdmin(user.user)) body.owner_id = user.user?.id;
 
-    // Parse JSON file
     if (file) {
-      try {
-        body.room_json = JSON.parse(file.buffer.toString("utf8"));
-      } catch {
-        throw { status: 400, message: "room_json file must be valid JSON" };
-      }
-    }
-
-    // Parse JSON string
-    if (!file && body.room_json) {
-      try {
-        body.room_json = JSON.parse(body.room_json);
-      } catch {
-        throw { status: 400, message: "room_json string must be valid JSON" };
-      }
+      body.room_json = JSON.parse(file.buffer.toString('utf8'));
     }
 
     normalizeTags(body);
 
-    const created = await supabaseService.create(token, TABLE, body);
-
-    // (optional) upload JSON file to storage
-    // if (file) {
-    //   const ownerId = body.owner_id || created.owner_id;
-    //   const slug = created.slug || created.id;
-    //   storageMeta = await uploadRoomJSONToStorage(ownerId, slug, file);
-    // }
-
-    return { ...created, __storage: storageMeta };
+    return supabaseService.create(token, TABLE, body);
   },
 
   /** UPDATE ROOM */
@@ -131,44 +108,43 @@ export const RoomService = {
     token: string,
     roomId: string,
     body: any,
-    file?: Express.Multer.File,
-    ownerId?: string
-  ) {
-    let storageMeta: any = null;
-
-    // Parse new JSON file
-    if (file) {
-      try {
-        body.room_json = JSON.parse(file.buffer.toString("utf8"));
-      } catch {
-        throw { status: 400, message: "room_json file must be valid JSON" };
+    file?: Express.Multer.File
+  ): Promise<RoomModel | undefined> {
+    const user = await getUserFromToken(token);
+    if (!isAdmin(user.user)) {
+      const room = await supabaseService.findById(token, TABLE, roomId);
+      if (!room) {
+        throw { status: 404, message: 'Not found' };
       }
+      if (room.owner_id !== user.user?.id) {
+        throw { status: 401, message: 'Not allowed' };
+      }
+    }
+
+    if (file) {
+      body.room_json = JSON.parse(file.buffer.toString('utf8'));
     }
 
     normalizeTags(body);
 
-    const updated = await supabaseService.updateById(
-      token,
-      TABLE,
-      roomId,
-      body
-    );
-
-    // Upload JSON to storage if needed
-    if (file) {
-      const id = ownerId ?? updated.owner_id;
-      const slug = updated.slug || updated.id;
-      storageMeta = await uploadRoomJSONToStorage(id, slug, file);
-    }
-
-    return { ...updated, __storage: storageMeta };
+    return await supabaseService.updateById(token, TABLE, roomId, body);
   },
 
-  /** DELETE ROOMS */
-  async remove(token: string, roomIds: string[]) {
-    for (const id of roomIds) {
-      await supabaseService.deleteById(token, TABLE, id);
+  /** DELETE ROOM */
+  async delete(token: string, id: string): Promise<boolean> {
+    const user = await getUserFromToken(token);
+    if (!isAdmin(user.user)) {
+      const room = await supabaseService.findById(token, TABLE, id);
+      if (!room) {
+        throw { status: 404, message: 'Not found' };
+      }
+      if (room.owner_id !== user.user?.id) {
+        throw { status: 401, message: 'Not allowed' };
+      }
     }
-    return { ok: true, deleted: roomIds.length };
+
+    await supabaseService.deleteById(token, TABLE, id);
+
+    return true;
   },
 };

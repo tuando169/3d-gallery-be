@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '../config/supabase';
+import { UserModel } from '../models/userModel';
 
 export interface UserPayload {
   name?: string;
@@ -12,17 +13,10 @@ export const userService = {
   /**
    * Get all users with pagination
    */
-  async getAll(page: number = 1, pageSize: number = 20) {
-    const p = Number(page);
-    const ps = Number(pageSize);
-
-    const from = (p - 1) * ps;
-    const to = from + ps - 1;
-
+  async getAll(): Promise<UserModel[]> {
     const { data, error } = await supabaseAdmin
       .from('users')
       .select('*')
-      .range(from, to)
       .order('id', { ascending: true });
 
     if (error) throw error;
@@ -32,7 +26,7 @@ export const userService = {
   /**
    * Get user by ID
    */
-  async getById(id: string) {
+  async getById(id: string): Promise<UserModel | undefined> {
     const { data, error } = await supabaseAdmin
       .from('users')
       .select('*')
@@ -46,7 +40,7 @@ export const userService = {
   /**
    * Create new user
    */
-  async create(payload: UserPayload) {
+  async create(payload: UserPayload): Promise<UserModel> {
     const { data, error } = await supabaseAdmin
       .from('users')
       .insert(payload)
@@ -60,7 +54,7 @@ export const userService = {
   /**
    * Update user
    */
-  async update(id: string, patch: UserPayload) {
+  async update(id: string, patch: UserPayload): Promise<UserModel> {
     const { data, error } = await supabaseAdmin
       .from('users')
       .update(patch)
@@ -75,10 +69,10 @@ export const userService = {
   /**
    * Delete a user
    */
-  async remove(id: string) {
+  async remove(id: string): Promise<boolean> {
     const { error } = await supabaseAdmin.from('users').delete().eq('id', id);
 
     if (error) throw error;
-    return { ok: true };
+    return true;
   },
 };

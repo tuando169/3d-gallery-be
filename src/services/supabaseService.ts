@@ -58,7 +58,7 @@ export const supabaseService = {
       .single();
 
     if (error) throw error;
-    return data as T;
+    return data;
   },
 
   /* ============================================================
@@ -68,7 +68,7 @@ export const supabaseService = {
     token: string,
     table: string,
     id: number | string
-  ): Promise<T | null> {
+  ): Promise<T | undefined> {
     const db = byToken(token);
 
     const { data, error } = await db
@@ -78,7 +78,7 @@ export const supabaseService = {
       .maybeSingle();
 
     if (error) throw error;
-    return data ?? null;
+    return data;
   },
 
   /* ============================================================
@@ -110,13 +110,13 @@ export const supabaseService = {
     token: string,
     table: string,
     id: number | string
-  ): Promise<{ ok: true }> {
+  ): Promise<boolean> {
     const db = byToken(token);
 
     const { error } = await db.from(table).delete().eq('id', id);
     if (error) throw error;
 
-    return { ok: true };
+    return true;
   },
 
   /* ============================================================

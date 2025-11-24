@@ -4,7 +4,7 @@ import { NewsService } from '../services/newsService';
 export const NewsController = {
   async list(req: Request, res: Response, next: NextFunction) {
     try {
-      const data = await NewsService.list(req.accessToken!);
+      const data = await NewsService.getAll(req.accessToken!);
       res.json(data);
     } catch (err) {
       next(err);
