@@ -1,4 +1,4 @@
-import { NewsItemTypeEnum } from '../constants/newsItemType';
+import { NewsItemTypeEnum } from "../../constants/newsItemType";
 
 export interface NewsModel {
   id: string;

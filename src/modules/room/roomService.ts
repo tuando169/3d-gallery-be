@@ -1,11 +1,8 @@
-import { supabaseService } from './supabaseService';
-import { userService } from './userService';
-import { supabaseAdmin } from '../config/supabase';
-import { getUserFromToken } from '../util';
-import { Request } from 'express';
-import { RoleEnum } from '../constants/role';
-import { VisibilityEnum } from '../constants/visibility';
-import { RoomModel } from '../models/roomModel';
+import { userService } from '../user/userService';
+import { getUserFromToken } from '../../util';
+import { VisibilityEnum } from '../../constants/visibility';
+import { RoomModel } from './roomModel';
+import { supabaseService } from '../supabase/supabaseService';
 
 const TABLE = 'rooms';
 const BUCKET = 'roomjson';

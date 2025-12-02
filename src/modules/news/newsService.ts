@@ -1,5 +1,5 @@
-import { NewsModel } from '../models/newsModel';
-import { supabaseService } from './supabaseService';
+import { supabaseService } from '../supabase/supabaseService';
+import { NewsModel } from './newsModel';
 
 const TABLE = 'magazines';
 

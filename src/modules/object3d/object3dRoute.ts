@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { AuthGuard } from '../../middleware/authGuard';
-import { Object3DController } from '../../controllers/object3dController';
+import { Object3DController } from './object3dController';
 import multer from 'multer';
 
 const router = Router();

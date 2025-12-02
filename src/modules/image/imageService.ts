@@ -1,9 +1,9 @@
 import axios from 'axios';
 import FormData from 'form-data';
-import { supabaseService } from './supabaseService';
-import { ImageModel } from '../models/imageModel';
-import { isSuccessfulResponse } from '../util';
-import { ImageAnalyzeModel } from '../models/imageAnalyzeModel';
+import { ImageModel } from './imageModel';
+import { isSuccessfulResponse } from '../../util';
+import { ImageAnalyzeModel } from './imageAnalyzeModel';
+import { supabaseService } from '../supabase/supabaseService';
 
 const TABLE = 'images';
 const BUCKET = 'images';

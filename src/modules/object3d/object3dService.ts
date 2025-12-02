@@ -1,7 +1,7 @@
-import { supabaseAdmin } from '../config/supabase';
-import { Object3DModel } from '../models/object3dModel';
-import { getUserFromToken } from '../util';
-import { supabaseService } from './supabaseService';
+import { supabaseAdmin } from '../../config/supabase';
+import { Object3DModel } from './object3dModel';
+import { getUserFromToken } from '../../util';
+import { supabaseService } from '../supabase/supabaseService';
 
 const TABLE = 'object3d';
 const BUCKET = 'object3d';

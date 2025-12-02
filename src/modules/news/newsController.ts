@@ -1,11 +1,10 @@
 import type { Request, Response, NextFunction } from 'express';
-import { ImageService } from '../services/imageService';
+import { NewsService } from './newsService';
 
-export const ImageController = {
+export const NewsController = {
   async list(req: Request, res: Response, next: NextFunction) {
     try {
-      const data = await ImageService.getAll(req.accessToken!);
-
+      const data = await NewsService.getAll(req.accessToken!);
       res.json(data);
     } catch (err) {
       next(err);
@@ -14,12 +13,8 @@ export const ImageController = {
 
   async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const row = await ImageService.create(
-        req.accessToken!,
-        req.body,
-        req.file
-      );
-      res.status(201).json(row);
+      const data = await NewsService.create(req.accessToken!, req.body);
+      res.status(201).json(data);
     } catch (err) {
       next(err);
     }
@@ -27,7 +22,7 @@ export const ImageController = {
 
   async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const data = await ImageService.update(
+      const data = await NewsService.update(
         req.accessToken!,
         req.params.id,
         req.body
@@ -40,10 +35,7 @@ export const ImageController = {
 
   async remove(req: Request, res: Response, next: NextFunction) {
     try {
-      const mediaId = req.query.media_id as string;
-      if (!mediaId) throw new Error('media_id is required');
-
-      const data = await ImageService.delete(req.accessToken!, mediaId);
+      const data = await NewsService.remove(req.accessToken!, req.params.id);
       res.json(data);
     } catch (err) {
       next(err);

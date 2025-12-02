@@ -1,8 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
-import { userService } from '../services/userService';
+import { userService } from './userService';
 
 export const UserController = {
-  /** GET /users?page=&pageSize= */
   async getAll(req: Request, res: Response, next: NextFunction) {
     try {
       const data = await userService.getAll();

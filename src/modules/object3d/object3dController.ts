@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import { Object3DService } from '../services/object3dService';
+import { Object3DService } from './object3dService';
 
 export const Object3DController = {
   async getAll(req: Request, res: Response, next: NextFunction) {

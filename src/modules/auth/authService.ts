@@ -1,6 +1,6 @@
 import { AuthResponse, UserResponse } from '@supabase/supabase-js';
 
-import { supabaseAdmin, supabasePublic } from '../config/supabase';
+import { supabaseAdmin, supabasePublic } from '../../config/supabase';
 
 export const AuthService = {
   /**

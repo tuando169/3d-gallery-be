@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { AuthGuard } from '../../middleware/authGuard';
-import { UserController } from '../../controllers/userController';
+import { UserController } from './userController';
 
 const r = Router();
 r.use(AuthGuard.verifyToken);

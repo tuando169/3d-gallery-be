@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import { RoomService } from '../services/roomService';
+import { RoomService } from './roomService';
 import { RoomModel } from '../models/roomModel';
 
 export const RoomController = {

@@ -1,5 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { getUserClient, supabaseAdmin } from '../config/supabase';
+import { getUserClient, supabaseAdmin } from '../../config/supabase';
 
 const byToken = (token: string): SupabaseClient => getUserClient(token);
 

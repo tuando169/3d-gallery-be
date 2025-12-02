@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { RoomController } from '../../controllers/roomController';
+import { RoomController } from '../../modules/room/roomController';
 import { AuthGuard } from '../../middleware/authGuard';
 
 const router = Router();

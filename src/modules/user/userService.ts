@@ -1,5 +1,5 @@
-import { supabaseAdmin } from '../config/supabase';
-import { UserModel } from '../models/userModel';
+import { supabaseAdmin } from '../../config/supabase';
+import { UserModel } from './userModel';
 
 export interface UserPayload {
   name?: string;
