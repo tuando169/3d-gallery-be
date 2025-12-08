@@ -7,23 +7,23 @@ const router = Router();
 
 const upload = multer();
 
-router.get('/', RoomController.getAll);
-router.get('/:id', RoomController.getOne);
+router.get('/', AuthGuard.verifyToken, RoomController.getList);
+router.get('/:id', AuthGuard.verifyToken, RoomController.getOne);
 
 router.post(
   '/',
   AuthGuard.verifyToken,
-  upload.single('room_json'),
+  upload.single('thumbnail'),
   RoomController.create
 );
 
-router.put(
-  '/',
+router.patch(
+  '/:id',
   AuthGuard.verifyToken,
-  upload.single('room_json'),
+  upload.single('thumbnail'),
   RoomController.update
 );
 
-router.delete('/', AuthGuard.verifyToken, RoomController.remove);
+router.delete('/:id', AuthGuard.verifyToken, RoomController.remove);
 
 export default router;

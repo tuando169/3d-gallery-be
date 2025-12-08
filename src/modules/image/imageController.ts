@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { ImageService } from './imageService';
 
 export const ImageController = {
-  async list(req: Request, res: Response, next: NextFunction) {
+  async getList(req: Request, res: Response, next: NextFunction) {
     try {
       const data = await ImageService.getAll(req.accessToken!);
 

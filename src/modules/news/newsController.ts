@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import { NewsService } from './newsService';
 
 export const NewsController = {
-  async list(req: Request, res: Response, next: NextFunction) {
+  async getList(req: Request, res: Response, next: NextFunction) {
     try {
       const data = await NewsService.getAll(req.accessToken!);
       res.json(data);

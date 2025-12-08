@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { AuthGuard } from '../../middleware/authGuard';
-import { ImageController } from '../../controllers/imageController';
+import { ImageController } from './imageController';
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -10,7 +10,7 @@ const upload = multer({
 
 export const imageRoutes = Router();
 
-imageRoutes.get('/', AuthGuard.verifyToken, ImageController.list);
+imageRoutes.get('/', AuthGuard.verifyToken, ImageController.getList);
 
 imageRoutes.post(
   '/',

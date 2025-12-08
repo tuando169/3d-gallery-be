@@ -1,12 +1,11 @@
 import type { Request, Response, NextFunction } from 'express';
 import { RoomService } from './roomService';
-import { RoomModel } from '../models/roomModel';
 
 export const RoomController = {
   /** GET /rooms */
-  async getAll(req: Request, res: Response, next: NextFunction) {
+  async getList(req: Request, res: Response, next: NextFunction) {
     try {
-      const data = await RoomService.getAll(req.accessToken!);
+      const data = await RoomService.getList(req.accessToken!);
       res.json(data);
     } catch (err) {
       next(err);
@@ -17,6 +16,7 @@ export const RoomController = {
   async getOne(req: Request, res: Response, next: NextFunction) {
     try {
       const data = await RoomService.getOne(req.accessToken!, req.params.id);
+      if (!data) return res.status(404).json({ message: 'Room not found' });
 
       res.json(data);
     } catch (err) {
@@ -24,13 +24,13 @@ export const RoomController = {
     }
   },
 
-  /** POST /rooms */
+  /** POST /room */
   async create(req: Request, res: Response, next: NextFunction) {
     try {
       const created = await RoomService.create(
         req.accessToken!,
         req.body,
-        req.file
+        req.file!
       );
 
       res.status(201).json(created);
@@ -59,9 +59,8 @@ export const RoomController = {
   async remove(req: Request, res: Response, next: NextFunction) {
     try {
       const id = req.params.id;
-      const deleted = await RoomService.delete(req.accessToken!, id);
-
-      res.json(deleted);
+      await RoomService.delete(req.accessToken!, id);
+      res.status(200);
     } catch (err) {
       next(err);
     }

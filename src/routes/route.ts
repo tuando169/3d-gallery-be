@@ -3,7 +3,7 @@ import authRoutes from '../modules/auth/authRoute';
 import imageRoutes from '../modules/image/imageRoute';
 import newsRoutes from '../modules/news/newsRoute';
 import object3dRoutes from '../modules/object3d/object3dRoute';
-import roomRoutes from './features/roomRoute';
+import roomRoutes from '../modules/room/roomRoute';
 import userRoutes from '../modules/user/userRoute';
 
 const router = Router();

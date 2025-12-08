@@ -1,5 +1,5 @@
-import { RoomStatusEnum } from '../constants/roomStatus';
-import { VisibilityEnum } from '../constants/visibility';
+import { RoomStatusEnum } from '../../constants/roomStatus';
+import { VisibilityEnum } from '../../constants/visibility';
 
 export interface RoomModel {
   id: string;

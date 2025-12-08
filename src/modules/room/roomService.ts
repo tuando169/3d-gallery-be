@@ -25,7 +25,7 @@ function normalizeTags(body: any) {
 
 export const RoomService = {
   /** LIST ROOMS */
-  async getAll(token: string): Promise<RoomModel[]> {
+  async getList(token: string): Promise<RoomModel[]> {
     try {
       const user = await getUserFromToken(token);
       const isAdminUser = isAdmin(user.user);
@@ -72,28 +72,29 @@ export const RoomService = {
   /** GET ONE ROOM */
   async getOne(token: string, roomId: string): Promise<RoomModel | undefined> {
     const user = await getUserFromToken(token);
+    console.log(user);
+
     if (isAdmin(user.user)) {
       const rooms = await supabaseService.findAllAdmin(TABLE, '*', (q: any) =>
         q.eq('id', roomId)
       );
-      return rooms[0] || null;
+      return rooms[0] || undefined;
     }
-
-    return supabaseService.findById(token, TABLE, roomId);
+    const room = await supabaseService.findById(token, TABLE, roomId);
+    if (!room) {
+      return undefined;
+    }
+    return room;
   },
 
   /** CREATE ROOM */
   async create(
     token: string,
     body: any,
-    file?: Express.Multer.File
+    thumbnail: Express.Multer.File
   ): Promise<RoomModel | undefined> {
     const user = await getUserFromToken(token);
     if (!isAdmin(user.user)) body.owner_id = user.user?.id;
-
-    if (file) {
-      body.room_json = JSON.parse(file.buffer.toString('utf8'));
-    }
 
     normalizeTags(body);
 
@@ -105,7 +106,7 @@ export const RoomService = {
     token: string,
     roomId: string,
     body: any,
-    file?: Express.Multer.File
+    thumbnail?: Express.Multer.File
   ): Promise<RoomModel | undefined> {
     const user = await getUserFromToken(token);
     if (!isAdmin(user.user)) {
@@ -118,20 +119,18 @@ export const RoomService = {
       }
     }
 
-    if (file) {
-      body.room_json = JSON.parse(file.buffer.toString('utf8'));
-    }
-
     normalizeTags(body);
 
     return await supabaseService.updateById(token, TABLE, roomId, body);
   },
 
   /** DELETE ROOM */
-  async delete(token: string, id: string): Promise<boolean> {
+  async delete(token: string, id: string): Promise<void> {
     const user = await getUserFromToken(token);
     if (!isAdmin(user.user)) {
       const room = await supabaseService.findById(token, TABLE, id);
+      console.log(room);
+
       if (!room) {
         throw { status: 404, message: 'Not found' };
       }
@@ -142,6 +141,6 @@ export const RoomService = {
 
     await supabaseService.deleteById(token, TABLE, id);
 
-    return true;
+    return Promise.resolve();
   },
 };

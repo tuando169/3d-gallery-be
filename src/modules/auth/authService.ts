@@ -70,10 +70,10 @@ export const AuthService = {
    *  (Service Role)
    * ====================================
    */
-  async logout(accessToken: string): Promise<{ ok: true }> {
+  async logout(accessToken: string): Promise<void> {
     const { error } = await supabaseAdmin.auth.admin.signOut(accessToken);
 
     if (error) throw error;
-    return { ok: true };
+    return Promise.resolve();
   },
 };

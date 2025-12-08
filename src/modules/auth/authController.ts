@@ -1,9 +1,11 @@
 import type { Request, Response, NextFunction } from 'express';
-import { AuthService } from '../services/authService';
+import { AuthService } from './authService';
 
 export const AuthController = {
   async signup(req: Request, res: Response, next: NextFunction) {
     try {
+      console.log(req);
+
       const { email, password } = req.body;
       const data = await AuthService.signup({ email, password });
       res.status(201).json(data);
@@ -24,7 +26,10 @@ export const AuthController = {
 
   async refresh(req: Request, res: Response, next: NextFunction) {
     try {
-      const { refresh_token } = req.body;
+      const refresh_token = req.accessToken;
+      if (!refresh_token)
+        throw { status: 400, message: 'No refresh token provided' };
+
       const data = await AuthService.refresh({ refresh_token });
       res.json(data);
     } catch (err) {
