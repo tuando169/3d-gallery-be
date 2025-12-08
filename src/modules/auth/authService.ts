@@ -51,11 +51,7 @@ export const AuthService = {
    *  Trả về { user, session }
    * ====================================
    */
-  async refresh(params: {
-    refresh_token: string;
-  }): Promise<AuthResponse['data']> {
-    const { refresh_token } = params;
-
+  async refresh(refresh_token: string): Promise<AuthResponse['data']> {
     const { data, error } = await supabasePublic.auth.refreshSession({
       refresh_token,
     });
