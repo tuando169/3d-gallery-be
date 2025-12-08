@@ -7,6 +7,7 @@ const router = Router();
 
 const upload = multer();
 
+router.get('/public', RoomController.getPublic);
 router.get('/', AuthGuard.verifyToken, RoomController.getList);
 router.get('/:id', AuthGuard.verifyToken, RoomController.getOne);
 

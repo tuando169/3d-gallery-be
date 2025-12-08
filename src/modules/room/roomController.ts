@@ -2,7 +2,14 @@ import type { Request, Response, NextFunction } from 'express';
 import { RoomService } from './roomService';
 
 export const RoomController = {
-  /** GET /rooms */
+  async getPublic(req: Request, res: Response, next: NextFunction) {
+    try {
+      const data = await RoomService.getPublic();
+      res.json(data);
+    } catch (err) {
+      next(err);
+    }
+  },
   async getList(req: Request, res: Response, next: NextFunction) {
     try {
       const data = await RoomService.getList(req.accessToken!);

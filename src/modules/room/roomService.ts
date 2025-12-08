@@ -24,7 +24,12 @@ function normalizeTags(body: any) {
 }
 
 export const RoomService = {
-  /** LIST ROOMS */
+  getPublic: async (): Promise<RoomModel[]> => {
+    const data = await supabaseService.findAllAdmin(TABLE, '*', (q) =>
+      q.eq('visibility', VisibilityEnum.Public)
+    );
+    return Promise.resolve(data.filter((room) => room.type != 'template'));
+  },
   async getList(token: string): Promise<RoomModel[]> {
     try {
       const user = await getUserFromToken(token);
@@ -35,17 +40,8 @@ export const RoomService = {
       if (isAdminUser) {
         data = await supabaseService.findAllAdmin(TABLE, '*', (q) => q);
       } else {
-        const publicRoom = await supabaseService.findAllAdmin(TABLE, '*', (q) =>
-          q.eq('visibility', VisibilityEnum.Public)
-        );
         const userRoom = await supabaseService.findMany(token, TABLE, '*');
-        // Gộp 2 mảng và loại bỏ trùng lặp (nếu có)
-        const combinedRooms = [...publicRoom, ...userRoom];
-        const uniqueRoomsMap = new Map();
-        for (const room of combinedRooms) {
-          uniqueRoomsMap.set(room.id, room);
-        }
-        data = Array.from(uniqueRoomsMap.values());
+        data = userRoom;
       }
 
       const ownerIds = Array.from(
