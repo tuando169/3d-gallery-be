@@ -5,7 +5,7 @@ import { supabaseService } from '../supabase/supabaseService';
 export const TextureController = {
   async getAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const data = await TextureService.getAll(req.accessToken!);
+      const data = await TextureService.getAll();
       res.json(data);
     } catch (err) {
       next(err);
@@ -14,13 +14,12 @@ export const TextureController = {
 
   async getOne(req: Request, res: Response, next: NextFunction) {
     try {
-      const data = await TextureService.getOne(req.accessToken!, req.params.id);
+      const data = await TextureService.getOne(req.params.id);
       res.json(data);
     } catch (err) {
       next(err);
     }
   },
-
 
   async create(req: Request, res: Response, next: NextFunction) {
     try {
@@ -33,9 +32,9 @@ export const TextureController = {
       const fileOrm = files?.orm;
 
       const data = await TextureService.create(
-        req.accessToken!,
         {
-          name: req.body.title ?? 'Untitled Texture',
+          name: req.body.name ?? 'Untitled Texture',
+          object3d_id: req.body.object3d_id,
         },
         {
           alb: fileAlb,
@@ -53,7 +52,6 @@ export const TextureController = {
   async update(req: Request, res: Response, next: NextFunction) {
     try {
       const data = await TextureService.update(
-        req.accessToken!,
         req.params.id,
         req.body,
         req.files as Record<string, Express.Multer.File> | undefined
@@ -66,7 +64,7 @@ export const TextureController = {
 
   async delete(req: Request, res: Response, next: NextFunction) {
     try {
-      const data = await TextureService.delete(req.accessToken!, req.params.id);
+      const data = await TextureService.delete(req.params.id);
       res.json(data);
     } catch (err) {
       next(err);

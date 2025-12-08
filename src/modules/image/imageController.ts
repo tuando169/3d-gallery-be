@@ -4,8 +4,17 @@ import { ImageService } from './imageService';
 export const ImageController = {
   async getList(req: Request, res: Response, next: NextFunction) {
     try {
-      const data = await ImageService.getAll(req.accessToken!);
+      const data = await ImageService.getList(req.accessToken!);
 
+      res.json(data);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async getOne(req: Request, res: Response, next: NextFunction) {
+    try {
+      const data = await ImageService.getOne(req.accessToken!, req.params.id);
       res.json(data);
     } catch (err) {
       next(err);
@@ -26,6 +35,8 @@ export const ImageController = {
   },
 
   async update(req: Request, res: Response, next: NextFunction) {
+    console.log(req);
+
     try {
       const data = await ImageService.update(
         req.accessToken!,
@@ -38,9 +49,13 @@ export const ImageController = {
     }
   },
 
-  async remove(req: Request, res: Response, next: NextFunction) {
+  async delete(req: Request, res: Response, next: NextFunction) {
+    console.log(1);
+
     try {
-      const mediaId = req.query.media_id as string;
+      const mediaId = req.params.id;
+      console.log(mediaId);
+
       if (!mediaId) throw new Error('media_id is required');
 
       const data = await ImageService.delete(req.accessToken!, mediaId);

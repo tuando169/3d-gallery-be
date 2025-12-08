@@ -2,7 +2,6 @@ import axios from 'axios';
 import FormData from 'form-data';
 import { ImageModel } from './imageModel';
 import { isSuccessfulResponse } from '../../util';
-import { ImageAnalyzeModel } from './imageAnalyzeModel';
 import { supabaseService } from '../supabase/supabaseService';
 
 const TABLE = 'images';
@@ -10,8 +9,16 @@ const BUCKET = 'images';
 
 export const ImageService = {
   /** SERVICE: list images */
-  async getAll(token: string): Promise<ImageModel[]> {
+  async getList(token: string): Promise<ImageModel[]> {
     return await supabaseService.findAllAdmin(TABLE, '*', (q: any) => q);
+  },
+
+  /** SERVICE: get one image */
+  async getOne(
+    token: string,
+    imageId: string
+  ): Promise<ImageModel | undefined> {
+    return await supabaseService.findById<ImageModel>(token, TABLE, imageId);
   },
 
   /** SERVICE: handle file upload + moderation + insert record */
@@ -29,6 +36,8 @@ export const ImageService = {
 
     // Check bucket
     const exists = await supabaseService.bucketExists(BUCKET);
+    console.log(exists);
+
     if (!exists) throw { status: 400, message: `Bucket "${BUCKET}" missing.` };
 
     const meta = await supabaseService.getBucketInfo(BUCKET);
@@ -44,24 +53,23 @@ export const ImageService = {
       );
       const path = `${Date.now()}_${safe}`;
 
-      // Moderation
-      const form = new FormData();
-      form.append('image', file.buffer, {
-        filename: file.originalname,
-        contentType: file.mimetype,
-      });
+      // const form = new FormData();
+      // form.append('image', file.buffer, {
+      //   filename: file.originalname,
+      //   contentType: file.mimetype,
+      // });
 
-      const analyze = await axios.post(
-        'https://zipppier-henry-bananas.ngrok-free.dev/analyze',
-        form,
-        { headers: form.getHeaders() }
-      );
+      // const analyze = await axios.post(
+      //   'https://zipppier-henry-bananas.ngrok-free.dev/analyze',
+      //   form,
+      //   { headers: form.getHeaders() }
+      // );
 
-      if (isSuccessfulResponse(analyze)) {
-        const data: ImageAnalyzeModel = analyze.data;
-        if (!data.ok)
-          throw { status: 422, message: 'Media file is not approved!' };
-      }
+      // if (isSuccessfulResponse(analyze)) {
+      //   const data: ImageAnalyzeModel = analyze.data;
+      //   if (!data.ok)
+      //     throw { status: 422, message: 'Media file is not approved!' };
+      // }
 
       // Upload
       await supabaseService.uploadObject(
@@ -81,6 +89,7 @@ export const ImageService = {
         file_url: fileUrl,
         ...body,
       };
+      console.log(payload);
 
       return await supabaseService.create<ImageModel>(token, TABLE, payload);
     }
@@ -99,9 +108,15 @@ export const ImageService = {
   },
 
   /** SERVICE: update */
-  async update(token: string, id: string, patch: any): Promise<ImageModel> {
+  async update(
+    token: string,
+    id: string,
+    body: Partial<ImageModel>
+  ): Promise<ImageModel> {
+    console.log(body);
+
     const payload: Partial<ImageModel> = {
-      ...patch,
+      ...body,
     };
     return await supabaseService.updateById<ImageModel>(
       token,

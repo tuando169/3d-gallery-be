@@ -6,19 +6,16 @@ const TABLE = 'textures';
 const BUCKET = 'textures';
 
 export const TextureService = {
-  async getAll(token: string): Promise<TextureModel[]> {
-    return await supabaseService.findMany(token, TABLE, '*', (q) => q);
+  async getAll(): Promise<TextureModel[]> {
+    return await supabaseService.findAllAdmin<TextureModel>(TABLE);
   },
 
-  async getOne(
-    token: string,
-    textureId: string
-  ): Promise<TextureModel | undefined> {
-    return await supabaseService.findById(token, TABLE, textureId);
+  async getOne(textureId: string): Promise<TextureModel | undefined> {
+    const list = await TextureService.getAll();
+    return list.find((t) => t.id === textureId);
   },
 
   async create(
-    token: string,
     body: any,
     files?: {
       alb?: Express.Multer.File;
@@ -26,11 +23,9 @@ export const TextureService = {
       orm?: Express.Multer.File;
     }
   ): Promise<TextureModel> {
-    const { title, texture_for } = body;
-    const owner_id = body.owner_id || null;
+    const { title: name, object3d_id } = body;
 
-    if (!owner_id) throw { status: 400, message: 'owner_id required' };
-    if (!texture_for) throw { status: 400, message: 'object3d_id required' };
+    if (!object3d_id) throw { status: 400, message: 'object3d_id required' };
 
     const fileAlb = files?.alb;
     const fileNor = files?.nor;
@@ -54,14 +49,16 @@ export const TextureService = {
       file: Express.Multer.File | undefined,
       prefix: string
     ) => {
-      if (!file) return null;
+      if (!file) return;
 
-      const safe = file.originalname.replace(/\s+/g, '_');
+      // safe rename
+      const safe = file.originalname?.replace(/\s+/g, '_') || `${prefix}.bin`;
+
       const ext = path.extname(safe).toLowerCase();
       const filename = `${Date.now()}_${prefix}${ext}`;
-      const filepath = `${owner_id}/${texture_for}/${filename}`;
+      const filepath = `${object3d_id}/${filename}`;
 
-      const up = await supabaseService.uploadObject(
+      await supabaseService.uploadObject(
         BUCKET,
         filepath,
         file.buffer,
@@ -79,19 +76,17 @@ export const TextureService = {
     const orm_url = body.orm_url || (await uploadOne(fileOrm, 'orm'));
 
     const payload: Partial<TextureModel> = {
-      name: title || 'Untitled Texture',
-      owner_id,
-      object3d_id: texture_for,
+      name: name || 'Untitled Texture',
+      object3d_id,
       alb_url,
       nor_url,
       orm_url,
     };
 
-    return await supabaseService.create<TextureModel>(token, TABLE, payload);
+    return await supabaseService.insertAdmin<TextureModel>(TABLE, payload);
   },
 
   async update(
-    token: string,
     textureId: string,
     body: Partial<TextureModel>,
     files?: {
@@ -100,7 +95,6 @@ export const TextureService = {
       orm?: Express.Multer.File[];
     }
   ): Promise<TextureModel> {
-    const owner_id = body.owner_id;
     const texture_for = body.object3d_id;
 
     const fileAlb = files?.alb?.[0];
@@ -108,6 +102,7 @@ export const TextureService = {
     const fileOrm = files?.orm?.[0];
 
     const bucketExists = await supabaseService.bucketExists(BUCKET);
+
     if (!bucketExists)
       throw { status: 400, message: `Bucket "${BUCKET}" missing.` };
 
@@ -123,7 +118,7 @@ export const TextureService = {
       const safe = file.originalname.replace(/\s+/g, '_');
       const ext = path.extname(safe).toLowerCase();
       const filename = `${Date.now()}_${prefix}${ext}`;
-      const filepath = `${owner_id}/${texture_for}/${filename}`;
+      const filepath = `${texture_for}/${filename}`;
 
       const up = await supabaseService.uploadObject(
         BUCKET,
@@ -149,8 +144,7 @@ export const TextureService = {
     if (fileNor) changes.nor_url = await uploadOne(fileNor, 'nor');
     if (fileOrm) changes.orm_url = await uploadOne(fileOrm, 'orm');
 
-    return await supabaseService.updateById<TextureModel>(
-      token,
+    return await supabaseService.updateByIdAdmin<TextureModel>(
       TABLE,
       textureId,
       changes
@@ -158,9 +152,9 @@ export const TextureService = {
   },
 
   /** DELETE */
-  async delete(token: string, id: string): Promise<boolean> {
-    await supabaseService.deleteById(token, TABLE, id);
-
+  async delete(id: string): Promise<boolean> {
+    //delete admin
+    const result = await supabaseService.deleteByIdAdmin(TABLE, id);
     return true;
   },
 };

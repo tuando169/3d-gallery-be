@@ -13,6 +13,7 @@ const upload = multer({
 router.use(AuthGuard.verifyToken);
 
 router.get('/', Object3DController.getAll);
+router.get('/:id', Object3DController.getOne);
 
 router.post('/', upload.single('file'), Object3DController.create);
 

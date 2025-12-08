@@ -1,7 +1,6 @@
 export interface ImageModel {
   id: string;
   title?: string;
-  description?: string;
 
   room_id?: string;
   owner_id?: string;
@@ -11,4 +10,8 @@ export interface ImageModel {
   height?: number;
 
   created_at: string;
+}
+
+export interface ImageAnalyzeModel {
+  ok: boolean;
 }

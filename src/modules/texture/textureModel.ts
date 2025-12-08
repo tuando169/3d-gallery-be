@@ -1,6 +1,5 @@
 export interface TextureModel {
   id: string;
-  owner_id: string;
   name: string;
   alb_url?: string;
   nor_url?: string;

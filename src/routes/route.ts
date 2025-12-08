@@ -5,6 +5,7 @@ import newsRoutes from '../modules/news/newsRoute';
 import object3dRoutes from '../modules/object3d/object3dRoute';
 import roomRoutes from '../modules/room/roomRoute';
 import userRoutes from '../modules/user/userRoute';
+import textureRoutes from '../modules/texture/textureRoute';
 
 const router = Router();
 
@@ -18,5 +19,6 @@ router.use('/news', newsRoutes);
 router.use('/object3d', object3dRoutes);
 router.use('/room', roomRoutes);
 router.use('/user', userRoutes);
+router.use('/texture', textureRoutes);
 
 export default router;

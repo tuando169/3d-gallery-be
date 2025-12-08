@@ -11,6 +11,18 @@ export const Object3DController = {
     }
   },
 
+  async getOne(req: Request, res: Response, next: NextFunction) {
+    try {
+      const data = await Object3DService.getOne(
+        req.accessToken!,
+        req.params.id
+      );
+      res.json(data);
+    } catch (err) {
+      next(err);
+    }
+  },
+
   async create(req: Request, res: Response, next: NextFunction) {
     try {
       const data = await Object3DService.create(

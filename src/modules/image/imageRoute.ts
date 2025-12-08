@@ -11,6 +11,7 @@ const upload = multer({
 export const imageRoutes = Router();
 
 imageRoutes.get('/', AuthGuard.verifyToken, ImageController.getList);
+imageRoutes.get('/:id', AuthGuard.verifyToken, ImageController.getOne);
 
 imageRoutes.post(
   '/',
@@ -21,5 +22,5 @@ imageRoutes.post(
 
 imageRoutes.patch('/:id', AuthGuard.verifyToken, ImageController.update);
 
-imageRoutes.delete('/', AuthGuard.verifyToken, ImageController.remove);
+imageRoutes.delete('/:id', AuthGuard.verifyToken, ImageController.delete);
 export default imageRoutes;

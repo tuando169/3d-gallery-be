@@ -31,7 +31,7 @@ const upload = multer({
 router.get('/', TextureController.getAll);
 router.get('/:id', TextureController.getOne);
 router.post('/', upload, TextureController.create);
-router.put('/', upload, TextureController.update);
-router.delete('/', TextureController.delete);
+router.patch('/:id', upload, TextureController.update);
+router.delete('/:id', TextureController.delete);
 
 export default router;

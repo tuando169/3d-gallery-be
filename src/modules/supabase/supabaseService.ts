@@ -16,9 +16,81 @@ export const supabaseService = {
     q = queryBuilder(q);
 
     const { data, error } = await q;
-    if (error) throw error;
+    if (error) {
+      console.log(error);
+
+      throw error;
+    }
 
     return data as T[];
+  },
+
+  /** Get single row by id (admin bypass) */
+  async findByIdAdmin<T = any>(
+    table: string,
+    id: string,
+    select = '*'
+  ): Promise<T | null> {
+    const { data, error } = await supabaseAdmin
+      .from(table)
+      .select(select)
+      .eq('id', id)
+      .maybeSingle();
+
+    if (error) {
+      console.log(error);
+
+      throw error;
+    }
+    return data as T | null;
+  },
+
+  /** Insert record (admin bypass) */
+  async insertAdmin<T = any>(table: string, payload: object): Promise<T> {
+    const { data, error } = await supabaseAdmin
+      .from(table)
+      .insert(payload)
+      .select()
+      .single();
+
+    if (error) {
+      console.log(error);
+
+      throw error;
+    }
+    return data as T;
+  },
+
+  /** Update record by ID (admin bypass) */
+  async updateByIdAdmin<T = any>(
+    table: string,
+    id: string,
+    updateFields: object
+  ): Promise<T> {
+    const { data, error } = await supabaseAdmin
+      .from(table)
+      .update(updateFields)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.log(error);
+
+      throw error;
+    }
+    return data as T;
+  },
+
+  /** Delete record by ID (admin bypass) */
+  async deleteByIdAdmin(table: string, id: string): Promise<void> {
+    const { error } = await supabaseAdmin.from(table).delete().eq('id', id);
+
+    if (error) {
+      console.log(error);
+
+      throw error;
+    }
   },
 
   /* ============================================================
@@ -36,7 +108,11 @@ export const supabaseService = {
     q = queryBuilder(q);
 
     const { data, error } = await q;
-    if (error) throw error;
+    if (error) {
+      console.log(error);
+
+      throw error;
+    }
 
     return data as T[];
   },
@@ -57,7 +133,11 @@ export const supabaseService = {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.log(error);
+
+      throw error;
+    }
     return data;
   },
 
@@ -77,7 +157,11 @@ export const supabaseService = {
       .eq('id', id)
       .maybeSingle();
 
-    if (error) throw error;
+    if (error) {
+      console.log(error);
+
+      throw error;
+    }
     return data;
   },
 
@@ -99,7 +183,11 @@ export const supabaseService = {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.log(error);
+
+      throw error;
+    }
     return data as T;
   },
 
@@ -114,7 +202,11 @@ export const supabaseService = {
     const db = byToken(token);
 
     const { error } = await db.from(table).delete().eq('id', id);
-    if (error) throw error;
+    if (error) {
+      console.log(error);
+
+      throw error;
+    }
 
     return true;
   },
@@ -124,14 +216,22 @@ export const supabaseService = {
    * ============================================================ */
   async bucketExists(bucket: string): Promise<boolean> {
     const { data: buckets, error } = await supabaseAdmin.storage.listBuckets();
-    if (error) throw error;
+    if (error) {
+      console.log(error);
+
+      throw error;
+    }
 
     return buckets?.some((b) => b.name === bucket) ?? false;
   },
 
   async getBucketInfo(bucket: string): Promise<Record<string, any> | null> {
     const { data: buckets, error } = await supabaseAdmin.storage.listBuckets();
-    if (error) throw error;
+    if (error) {
+      console.log(error);
+
+      throw error;
+    }
 
     return buckets?.find((b) => b.name === bucket) ?? null;
   },
@@ -147,7 +247,11 @@ export const supabaseService = {
       .from(bucket)
       .upload(path, fileBuffer, { contentType, upsert });
 
-    if (error) throw error;
+    if (error) {
+      console.log(error);
+
+      throw error;
+    }
     return data;
   },
 
@@ -165,7 +269,11 @@ export const supabaseService = {
       .from(bucket)
       .createSignedUrl(path, expiresInSec);
 
-    if (error) throw error;
+    if (error) {
+      console.log(error);
+
+      throw error;
+    }
     return data.signedUrl;
   },
 };

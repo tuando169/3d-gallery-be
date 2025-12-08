@@ -12,6 +12,18 @@ export const Object3DService = {
     return await supabaseService.findMany(token, TABLE, '*', (q) => q);
   },
 
+  /** Get one by ID */
+  async getOne(
+    token: string,
+    objectId: string
+  ): Promise<Object3DModel | undefined> {
+    return await supabaseService.findById<Object3DModel>(
+      token,
+      TABLE,
+      objectId
+    );
+  },
+
   /** UPLOAD FILE TO STORAGE */
   async uploadGLB(ownerId: string, file: Express.Multer.File) {
     const filename = `${Date.now()}_${file.originalname.replace(/\s+/g, '_')}`;
