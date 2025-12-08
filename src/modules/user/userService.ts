@@ -9,7 +9,7 @@ export interface UserPayload {
   [key: string]: any;
 }
 
-export const userService = {
+export const UserService = {
   /**
    * Get all users with pagination
    */

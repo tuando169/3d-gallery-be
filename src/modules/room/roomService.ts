@@ -1,14 +1,15 @@
-import { userService } from '../user/userService';
+import { UserService } from '../user/userService';
 import { getUserFromToken } from '../../util';
 import { VisibilityEnum } from '../../constants/visibility';
 import { RoomCollabModel, RoomModel } from './roomModel';
 import { supabaseService } from '../supabase/supabaseService';
+import { UserModel } from '../user/userModel';
 
 const TABLE = 'rooms';
 const COLLAB_TABLE = 'room_collaborators';
 
-function isAdmin(user: any) {
-  return user?.user_metadata?.role === 'admin';
+function isAdmin(user?: UserModel) {
+  return user?.role === 'admin';
 }
 
 function normalizeTags(body: any) {
@@ -36,7 +37,10 @@ export const RoomService = {
       const isAdminUser = isAdmin(user.user);
       const allRooms = await supabaseService.findAllAdmin(TABLE, '*', (q) => q);
       let data: RoomModel[];
+      console.log(user);
+
       if (isAdminUser) {
+        console.log('Admin user detected');
         data = allRooms;
       } else {
         const userRooms = allRooms.filter((r) => r.owner_id === user.user?.id);
@@ -45,8 +49,6 @@ export const RoomService = {
           'room_id',
           (q: any) => q.eq('user_id', user.user?.id)
         );
-        console.log('userRoom', userRooms);
-        console.log('collabRooms', collabRooms);
 
         const uniqueRoomIds = new Set([
           ...userRooms.map((r: any) => r.id),
@@ -64,7 +66,7 @@ export const RoomService = {
       );
 
       const authors = await Promise.all(
-        ownerIds.map((id) => userService.getById(id).catch(() => null))
+        ownerIds.map((id) => UserService.getById(id).catch(() => null))
       );
 
       const authorMap = Object.fromEntries(

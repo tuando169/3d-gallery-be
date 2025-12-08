@@ -1,10 +1,10 @@
 import type { Request, Response, NextFunction } from 'express';
-import { userService } from './userService';
+import { UserService } from './userService';
 
 export const UserController = {
   async getAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const data = await userService.getAll();
+      const data = await UserService.getAll();
       res.json(data);
     } catch (err) {
       next(err);
@@ -14,7 +14,7 @@ export const UserController = {
   /** GET /users/:id */
   async getOne(req: Request, res: Response, next: NextFunction) {
     try {
-      const user = await userService.getById(req.params.id);
+      const user = await UserService.getById(req.params.id);
 
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
@@ -29,7 +29,7 @@ export const UserController = {
   /** POST /users */
   async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const created = await userService.create(req.body);
+      const created = await UserService.create(req.body);
       res.status(201).json(created);
     } catch (err) {
       next(err);
@@ -39,7 +39,7 @@ export const UserController = {
   /** PATCH /users/:id */
   async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const updated = await userService.update(req.params.id, req.body);
+      const updated = await UserService.update(req.params.id, req.body);
       res.json(updated);
     } catch (err) {
       next(err);
@@ -49,7 +49,7 @@ export const UserController = {
   /** DELETE /users/:id */
   async remove(req: Request, res: Response, next: NextFunction) {
     try {
-      const deleted = await userService.remove(req.params.id);
+      const deleted = await UserService.remove(req.params.id);
       res.json(deleted);
     } catch (err) {
       next(err);

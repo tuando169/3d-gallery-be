@@ -1,7 +1,8 @@
 import { AxiosResponse } from 'axios';
 import { Request } from 'express';
 import { supabaseAdmin } from './config/supabase';
-import { User } from '@supabase/supabase-js';
+import { UserModel } from './modules/user/userModel';
+import { UserService } from './modules/user/userService';
 
 export const isSuccessfulResponse = (response: AxiosResponse): boolean => {
   return response && response.status >= 200 && response.status < 300;
@@ -9,7 +10,7 @@ export const isSuccessfulResponse = (response: AxiosResponse): boolean => {
 
 export const getUserFromToken = async (
   token: string
-): Promise<{ user?: User; error?: string }> => {
+): Promise<{ user?: UserModel; error?: string }> => {
   const { data, error } = await supabaseAdmin.auth.getUser(token);
 
   if (error) {
@@ -18,6 +19,10 @@ export const getUserFromToken = async (
     console.error('Auth Error:', error.message);
     return { user: undefined, error: error.message };
   }
-
-  return { user: data.user, error: undefined };
+  const userId = data.user?.id;
+  if (!userId) {
+    return { user: undefined, error: 'User not found' };
+  }
+  const userData = await UserService.getById(userId);
+  return { user: userData, error: undefined };
 };
