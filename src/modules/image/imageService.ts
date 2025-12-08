@@ -10,7 +10,7 @@ const BUCKET = 'images';
 export const ImageService = {
   /** SERVICE: list images */
   async getList(token: string): Promise<ImageModel[]> {
-    return await supabaseService.findAllAdmin(TABLE, '*', (q: any) => q);
+    return await supabaseService.findMany(token, TABLE, '*', (q: any) => q);
   },
 
   /** SERVICE: get one image */
