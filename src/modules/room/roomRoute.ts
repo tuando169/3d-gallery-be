@@ -9,6 +9,8 @@ const upload = multer();
 
 router.get('/public', RoomController.getPublic);
 router.get('/', AuthGuard.verifyToken, RoomController.getList);
+router.get('/template', AuthGuard.verifyToken, RoomController.getTemplateList);
+
 router.get('/:id', AuthGuard.verifyToken, RoomController.getOne);
 
 router.post(
@@ -16,6 +18,12 @@ router.post(
   AuthGuard.verifyToken,
   upload.single('thumbnail'),
   RoomController.create
+);
+
+router.post(
+  '/buy-template',
+  AuthGuard.verifyToken,
+  RoomController.buyTemplates
 );
 
 router.patch(

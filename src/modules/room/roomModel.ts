@@ -23,3 +23,8 @@ export interface RoomModel {
   created_at: string;
   updated_at: string;
 }
+
+export interface RoomCollabModel {
+  user_id: string;
+  room_id: string;
+}

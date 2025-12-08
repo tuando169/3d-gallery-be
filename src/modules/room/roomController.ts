@@ -19,6 +19,14 @@ export const RoomController = {
     }
   },
 
+  async getTemplateList(req: Request, res: Response, next: NextFunction) {
+    try {
+      const data = await RoomService.getTemplateList();
+      res.json(data);
+    } catch (err) {
+      next(err);
+    }
+  },
   /** GET /rooms/:id */
   async getOne(req: Request, res: Response, next: NextFunction) {
     try {
@@ -45,6 +53,19 @@ export const RoomController = {
       next(err);
     }
   },
+
+  async buyTemplates(req: Request, res: Response, next: NextFunction) {
+    try {
+      const created = await RoomService.buyTemplates(
+        req.accessToken!,
+        req.body
+      );
+      res.status(201).json(created);
+    } catch (err) {
+      next(err);
+    }
+  },
+  
 
   /** PATCH /rooms/:id */
   async update(req: Request, res: Response, next: NextFunction) {

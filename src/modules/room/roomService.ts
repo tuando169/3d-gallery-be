@@ -1,11 +1,11 @@
 import { userService } from '../user/userService';
 import { getUserFromToken } from '../../util';
 import { VisibilityEnum } from '../../constants/visibility';
-import { RoomModel } from './roomModel';
+import { RoomCollabModel, RoomModel } from './roomModel';
 import { supabaseService } from '../supabase/supabaseService';
 
 const TABLE = 'rooms';
-const BUCKET = 'roomjson';
+const COLLAB_TABLE = 'room_collaborators';
 
 function isAdmin(user: any) {
   return user?.user_metadata?.role === 'admin';
@@ -34,14 +34,29 @@ export const RoomService = {
     try {
       const user = await getUserFromToken(token);
       const isAdminUser = isAdmin(user.user);
-
-      let data;
-
+      const allRooms = await supabaseService.findAllAdmin(TABLE, '*', (q) => q);
+      let data: RoomModel[];
       if (isAdminUser) {
-        data = await supabaseService.findAllAdmin(TABLE, '*', (q) => q);
+        data = allRooms;
       } else {
-        const userRoom = await supabaseService.findMany(token, TABLE, '*');
-        data = userRoom;
+        const userRooms = allRooms.filter((r) => r.owner_id === user.user?.id);
+        const collabRooms = await supabaseService.findAllAdmin(
+          COLLAB_TABLE,
+          'room_id',
+          (q: any) => q.eq('user_id', user.user?.id)
+        );
+        console.log('userRoom', userRooms);
+        console.log('collabRooms', collabRooms);
+
+        const uniqueRoomIds = new Set([
+          ...userRooms.map((r: any) => r.id),
+          ...collabRooms.map((r: any) => r.room_id),
+        ]);
+
+        data = [];
+        uniqueRoomIds.forEach((id) => {
+          data.push(allRooms.find((r: any) => r.id === id));
+        });
       }
 
       const ownerIds = Array.from(
@@ -65,7 +80,15 @@ export const RoomService = {
     }
   },
 
-  /** GET ONE ROOM */
+  getTemplateList: async (): Promise<RoomModel[]> => {
+    const data = await supabaseService.findAllAdmin(TABLE, '*', (q) =>
+      q.eq('type', 'template')
+    );
+    console.log(data);
+
+    return Promise.resolve(data);
+  },
+
   async getOne(token: string, roomId: string): Promise<RoomModel | undefined> {
     const user = await getUserFromToken(token);
     console.log(user);
@@ -83,7 +106,6 @@ export const RoomService = {
     return room;
   },
 
-  /** CREATE ROOM */
   async create(
     token: string,
     body: any,
@@ -97,7 +119,25 @@ export const RoomService = {
     return supabaseService.create(token, TABLE, body);
   },
 
-  /** UPDATE ROOM */
+  async buyTemplates(
+    token: string,
+    body: { template_ids: string[] }
+  ): Promise<void> {
+    const user = await getUserFromToken(token);
+    const userId = user.user?.id;
+    const templateIds = body.template_ids;
+    const promises: Promise<RoomCollabModel>[] = [];
+    templateIds.forEach((id) => {
+      const payload: RoomCollabModel = {
+        room_id: id,
+        user_id: userId!,
+      };
+      promises.push(supabaseService.create(token, COLLAB_TABLE, payload));
+    });
+    await Promise.all(promises);
+    return Promise.resolve();
+  },
+
   async update(
     token: string,
     roomId: string,
