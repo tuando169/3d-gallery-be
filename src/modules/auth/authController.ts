@@ -6,8 +6,8 @@ export const AuthController = {
     try {
       console.log(req.body);
 
-      const { email, password } = req.body;
-      const data = await AuthService.signup({ email, password });
+      const { email, password,name,role } = req.body;
+      const data = await AuthService.signup({ email, password, name, role });
       res.status(201).json(data);
     } catch (err) {
       next(err);

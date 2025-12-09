@@ -12,17 +12,42 @@ export const AuthService = {
   async signup(params: {
     email: string;
     password: string;
-  }): Promise<UserResponse['data']> {
-    const { email, password } = params;
+    name: string;
+    role: string;
+  }) {
+    const { email, password, name, role } = params;
 
-    const { data, error } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-    });
+    // 1. Tạo user trong Supabase Auth
+    const { data: authData, error: authError } =
+      await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true, // auto verify
+      });
 
-    if (error) throw error;
-    return data; // { user }
+    if (authError) throw authError;
+
+    const userId = authData.user?.id;
+    if (!userId) throw new Error('Không lấy được userId từ Supabase');
+
+    // 2. Insert/update bảng users
+    const { data: userData, error: userError } = await supabaseAdmin
+      .from('users')
+      .upsert(
+        {
+          id: userId, // khóa chính
+          email,
+          name,
+          role,
+        },
+        { onConflict: 'id' }
+      )
+      .select()
+      .single();
+
+    if (userError) throw userError;
+
+    return userData;
   },
 
   /**
