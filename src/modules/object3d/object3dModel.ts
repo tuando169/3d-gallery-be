@@ -1,13 +1,9 @@
 export interface Object3DModel {
   id: string;
-
-  owner_id?: string;
+  title: string;
+  owner_id: string;
   file_url: string;
-
-  poly_count?: number;
-  bounds?: Record<string, any>;
-
-  source_type: string;
+  metadata?: Record<string, any>;
 
   created_at: string;
 

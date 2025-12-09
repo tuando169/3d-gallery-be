@@ -1,6 +1,10 @@
 import axios from 'axios';
 import FormData from 'form-data';
-import { getUserFromToken, isSuccessfulResponse } from '../../util';
+import {
+  getUserFromToken,
+  isSuccessfulResponse,
+  uploadFileToBucket,
+} from '../../util';
 import { supabaseService } from '../supabase/supabaseService';
 import { AudioModel } from './audioModel';
 
@@ -9,7 +13,10 @@ const BUCKET = 'audio';
 
 export const AudioService = {
   async getList(token: string): Promise<AudioModel[]> {
-    return await supabaseService.findMany(token, TABLE, '*', (q: any) => q);
+    const user = await getUserFromToken(token);
+    return await supabaseService.findMany(token, TABLE, '*', (q: any) =>
+      q.eq('owner_id', user?.user?.id)
+    );
   },
 
   async getOne(
@@ -23,7 +30,7 @@ export const AudioService = {
   async create(
     token: string,
     body: any,
-    file?: Express.Multer.File
+    file: Express.Multer.File
   ): Promise<AudioModel> {
     const hasFile = !!file;
 
@@ -61,7 +68,8 @@ export const AudioService = {
     const payload: Partial<AudioModel> = {
       file_url: fileUrl,
       owner_id: ownerId,
-      ...body,
+      title: body.title,
+      metadata: body.metadata,
     };
     console.log(payload);
 
@@ -72,12 +80,15 @@ export const AudioService = {
   async update(
     token: string,
     id: string,
-    body: Partial<AudioModel>
+    body: Partial<AudioModel>,
+    file?: Express.Multer.File
   ): Promise<AudioModel> {
     const payload: Partial<AudioModel> = {
-      ...body,
+      id: id,
+      title: body.title,
+      owner_id: (await getUserFromToken(token))?.user?.id,
     };
-    console.log(id, payload);
+    if (file) payload.file_url = await uploadFileToBucket(BUCKET, file);
     return await supabaseService.updateById<AudioModel>(
       token,
       TABLE,

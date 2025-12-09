@@ -20,7 +20,12 @@ imageRoutes.post(
   ImageController.create
 );
 
-imageRoutes.patch('/:id', AuthGuard.verifyToken, ImageController.update);
+imageRoutes.patch(
+  '/:id',
+  AuthGuard.verifyToken,
+  upload.single('file'),
+  ImageController.update
+);
 
 imageRoutes.delete('/:id', AuthGuard.verifyToken, ImageController.delete);
 export default imageRoutes;

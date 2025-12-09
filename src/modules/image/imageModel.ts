@@ -6,12 +6,12 @@ export interface ImageModel {
   owner_id?: string;
   file_url: string;
 
-  width?: number;
-  height?: number;
+  metadata?: Record<string, any>;
 
   created_at: string;
 }
 
 export interface ImageAnalyzeModel {
   ok: boolean;
+  is_nsfw: boolean;
 }

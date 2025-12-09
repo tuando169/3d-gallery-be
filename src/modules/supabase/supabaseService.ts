@@ -276,4 +276,16 @@ export const supabaseService = {
     }
     return data.signedUrl;
   },
+
+  async deleteInStorage(bucket: string, path: string): Promise<void> {
+    return supabaseAdmin.storage
+      .from(bucket)
+      .remove([path])
+      .then(({ error }) => {
+        if (error) {
+          console.log(error);
+          throw error;
+        }
+      });
+  },
 };

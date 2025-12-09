@@ -25,7 +25,7 @@ export const AudioController = {
       const row = await AudioService.create(
         req.accessToken!,
         req.body,
-        req.file
+        req.file!
       );
       res.status(201).json(row);
     } catch (err) {
@@ -34,13 +34,12 @@ export const AudioController = {
   },
 
   async update(req: Request, res: Response, next: NextFunction) {
-    console.log(req);
-
     try {
       const data = await AudioService.update(
         req.accessToken!,
         req.params.id,
-        req.body
+        req.body,
+        req.file
       );
       res.json(data);
     } catch (err) {

@@ -20,7 +20,12 @@ audioRoutes.post(
   AudioController.create
 );
 
-audioRoutes.patch('/:id', AuthGuard.verifyToken, AudioController.update);
+audioRoutes.patch(
+  '/:id',
+  AuthGuard.verifyToken,
+  upload.single('file'),
+  AudioController.update
+);
 
 audioRoutes.delete('/:id', AuthGuard.verifyToken, AudioController.delete);
 export default audioRoutes;

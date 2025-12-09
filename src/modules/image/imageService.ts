@@ -1,7 +1,11 @@
 import axios from 'axios';
 import FormData from 'form-data';
-import { ImageModel } from './imageModel';
-import { isSuccessfulResponse } from '../../util';
+import { ImageAnalyzeModel, ImageModel } from './imageModel';
+import {
+  getUserFromToken,
+  isSuccessfulResponse,
+  uploadFileToBucket,
+} from '../../util';
 import { supabaseService } from '../supabase/supabaseService';
 
 const TABLE = 'images';
@@ -10,7 +14,8 @@ const BUCKET = 'images';
 export const ImageService = {
   /** SERVICE: list images */
   async getList(token: string): Promise<ImageModel[]> {
-    return await supabaseService.findMany(token, TABLE, '*', (q: any) => q);
+    const user = await getUserFromToken(token);
+    return await supabaseService.findMany(token, TABLE, '*', (q: any) => q.eq('owner_id', user?.user?.id));
   },
 
   /** SERVICE: get one image */
@@ -28,10 +33,9 @@ export const ImageService = {
     file?: Express.Multer.File
   ): Promise<ImageModel> {
     const hasFile = !!file;
-    const hasUrl = !!body?.file_url;
 
-    if (!hasFile && !hasUrl) {
-      throw { status: 400, message: `Provide "file" or "file_url".` };
+    if (!hasFile) {
+      throw { status: 400, message: `Provide "file".` };
     }
 
     // Check bucket
@@ -46,63 +50,49 @@ export const ImageService = {
     // =====================
     // CASE 1: UPLOAD FILE
     // =====================
-    if (file) {
-      const safe = (file.originalname || 'upload.bin').replace(
-        /[^\w.\-]/g,
-        '_'
-      );
-      const path = `${Date.now()}_${safe}`;
+    const safe = (file.originalname || 'upload.bin').replace(/[^\w.\-]/g, '_');
+    const path = `${Date.now()}_${safe}`;
 
-      // const form = new FormData();
-      // form.append('image', file.buffer, {
-      //   filename: file.originalname,
-      //   contentType: file.mimetype,
-      // });
+    const form = new FormData();
+    form.append('image', file.buffer, {
+      filename: file.originalname,
+      contentType: file.mimetype,
+    });
 
-      // const analyze = await axios.post(
-      //   'https://zipppier-henry-bananas.ngrok-free.dev/analyze',
-      //   form,
-      //   { headers: form.getHeaders() }
-      // );
+    const analyze = await axios.post(
+      'https://zipppier-henry-bananas.ngrok-free.dev/analyze',
+      form,
+      { headers: form.getHeaders() }
+    );
 
-      // if (isSuccessfulResponse(analyze)) {
-      //   const data: ImageAnalyzeModel = analyze.data;
-      //   if (!data.ok)
-      //     throw { status: 422, message: 'Media file is not approved!' };
-      // }
-
-      // Upload
-      await supabaseService.uploadObject(
-        BUCKET,
-        path,
-        file.buffer,
-        file.mimetype,
-        true
-      );
-
-      // Build URL
-      const fileUrl = isPublicBucket
-        ? supabaseService.getPublicUrl(BUCKET, path)
-        : await supabaseService.createSignedUrl(BUCKET, path);
-
-      const payload: Partial<ImageModel> = {
-        file_url: fileUrl,
-        ...body,
-      };
-      console.log(payload);
-
-      return await supabaseService.create<ImageModel>(token, TABLE, payload);
+    if (isSuccessfulResponse(analyze)) {
+      const data: ImageAnalyzeModel = analyze.data;
+      if (data.is_nsfw)
+        throw { status: 422, message: 'Media file is not approved!' };
     }
 
-    // =====================
-    // CASE 2: use file_url
-    // =====================
+    // Upload
+    await supabaseService.uploadObject(
+      BUCKET,
+      path,
+      file.buffer,
+      file.mimetype,
+      true
+    );
+
+    // Build URL
+    const fileUrl = isPublicBucket
+      ? supabaseService.getPublicUrl(BUCKET, path)
+      : await supabaseService.createSignedUrl(BUCKET, path);
+
+    const owner_id = (await getUserFromToken(token)).user?.id;
+
     const payload: Partial<ImageModel> = {
-      ...body,
+      file_url: fileUrl,
+      owner_id: owner_id,
+      room_id: body.room_id,
+      title: body.title,
     };
-    if (!payload.file_url) {
-      throw { status: 400, message: `"file_url" missing.` };
-    }
 
     return await supabaseService.create<ImageModel>(token, TABLE, payload);
   },
@@ -111,13 +101,16 @@ export const ImageService = {
   async update(
     token: string,
     id: string,
-    body: Partial<ImageModel>
+    body: Partial<ImageModel>,
+    file?: Express.Multer.File
   ): Promise<ImageModel> {
-    console.log(body);
-
     const payload: Partial<ImageModel> = {
-      ...body,
+      id: id,
+      room_id: body.room_id,
+      title: body.title,
     };
+    if (file) body.file_url = await uploadFileToBucket(BUCKET, file);
+
     return await supabaseService.updateById<ImageModel>(
       token,
       TABLE,

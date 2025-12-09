@@ -35,13 +35,12 @@ export const ImageController = {
   },
 
   async update(req: Request, res: Response, next: NextFunction) {
-    console.log(req);
-
     try {
       const data = await ImageService.update(
         req.accessToken!,
         req.params.id,
-        req.body
+        req.body,
+        req.file
       );
       res.json(data);
     } catch (err) {
