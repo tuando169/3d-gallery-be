@@ -1,5 +1,5 @@
 import { UserService } from '../user/userService';
-import { getUserFromToken } from '../../util';
+import { getUserFromToken, uploadFileToBucket } from '../../util';
 import { VisibilityEnum } from '../../constants/visibility';
 import { RoomCollabModel, RoomModel } from './roomModel';
 import { supabaseService } from '../supabase/supabaseService';
@@ -118,6 +118,7 @@ export const RoomService = {
 
     normalizeTags(body);
 
+    body.thumbnail = await uploadFileToBucket('images', thumbnail);
     return supabaseService.create(token, TABLE, body);
   },
 
@@ -158,7 +159,8 @@ export const RoomService = {
     }
 
     normalizeTags(body);
-
+    if (thumbnail)
+      body.thumbnail = await uploadFileToBucket('images', thumbnail);
     return await supabaseService.updateById(token, TABLE, roomId, body);
   },
 
