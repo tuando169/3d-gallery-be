@@ -1,32 +1,35 @@
-import axios from 'axios';
-import FormData from 'form-data';
-import { ImageAnalyzeModel, ImageModel } from './imageModel';
+import axios from "axios";
+import FormData from "form-data";
+import { ImageAnalyzeModel, ImageModel } from "./imageModel";
 import {
+  deleteOldFileFromBucket,
   getUserFromToken,
   isSuccessfulResponse,
   uploadFileToBucket,
-} from '../../util';
-import { supabaseService } from '../supabase/supabaseService';
+} from "../../util";
+import { supabaseService } from "../supabase/supabaseService";
 
-const TABLE = 'images';
-const BUCKET = 'images';
+const TABLE = "images";
+const BUCKET = "images";
 
 export const ImageService = {
-  /** SERVICE: list images */
   async getList(token: string): Promise<ImageModel[]> {
     const user = await getUserFromToken(token);
-    return await supabaseService.findMany(token, TABLE, '*', (q: any) => q.eq('owner_id', user?.user?.id));
+    return await supabaseService.findMany(token, TABLE, "*", (q: any) =>
+      q.eq("owner_id", user?.user?.id)
+    );
   },
 
-  /** SERVICE: get one image */
   async getOne(
     token: string,
     imageId: string
   ): Promise<ImageModel | undefined> {
-    return await supabaseService.findById<ImageModel>(token, TABLE, imageId);
+    const list = await ImageService.getList(token);
+    return Promise.resolve(
+      list.find((item: ImageModel) => item.id === imageId)
+    );
   },
 
-  /** SERVICE: handle file upload + moderation + insert record */
   async create(
     token: string,
     body: any,
@@ -38,7 +41,6 @@ export const ImageService = {
       throw { status: 400, message: `Provide "file".` };
     }
 
-    // Check bucket
     const exists = await supabaseService.bucketExists(BUCKET);
     console.log(exists);
 
@@ -47,31 +49,27 @@ export const ImageService = {
     const meta = await supabaseService.getBucketInfo(BUCKET);
     const isPublicBucket = !!meta?.public;
 
-    // =====================
-    // CASE 1: UPLOAD FILE
-    // =====================
-    const safe = (file.originalname || 'upload.bin').replace(/[^\w.\-]/g, '_');
+    const safe = (file.originalname || "upload.bin").replace(/[^\w.\-]/g, "_");
     const path = `${Date.now()}_${safe}`;
 
-    const form = new FormData();
-    form.append('image', file.buffer, {
-      filename: file.originalname,
-      contentType: file.mimetype,
-    });
+    // const form = new FormData();
+    // form.append("image", file.buffer, {
+    //   filename: file.originalname,
+    //   contentType: file.mimetype,
+    // });
 
-    const analyze = await axios.post(
-      'https://zipppier-henry-bananas.ngrok-free.dev/analyze',
-      form,
-      { headers: form.getHeaders() }
-    );
+    // const analyze = await axios.post(
+    //   "https://zipppier-henry-bananas.ngrok-free.dev/analyze",
+    //   form,
+    //   { headers: form.getHeaders() }
+    // );
 
-    if (isSuccessfulResponse(analyze)) {
-      const data: ImageAnalyzeModel = analyze.data;
-      if (data.is_nsfw)
-        throw { status: 422, message: 'Media file is not approved!' };
-    }
+    // if (analyze && isSuccessfulResponse(analyze)) {
+    //   const data: ImageAnalyzeModel = analyze.data;
+    //   if (data.is_nsfw)
+    //     throw { status: 422, message: "Media file is not approved!" };
+    // }
 
-    // Upload
     await supabaseService.uploadObject(
       BUCKET,
       path,
@@ -80,7 +78,6 @@ export const ImageService = {
       true
     );
 
-    // Build URL
     const fileUrl = isPublicBucket
       ? supabaseService.getPublicUrl(BUCKET, path)
       : await supabaseService.createSignedUrl(BUCKET, path);
@@ -97,7 +94,6 @@ export const ImageService = {
     return await supabaseService.create<ImageModel>(token, TABLE, payload);
   },
 
-  /** SERVICE: update */
   async update(
     token: string,
     id: string,
@@ -109,7 +105,11 @@ export const ImageService = {
       room_id: body.room_id,
       title: body.title,
     };
-    if (file) body.file_url = await uploadFileToBucket(BUCKET, file);
+    const oldRecord = await ImageService.getOne(token, id);
+    if (file) {
+      payload.file_url = await uploadFileToBucket(BUCKET, file);
+      if (oldRecord) await deleteOldFileFromBucket(BUCKET, oldRecord.file_url);
+    }
 
     return await supabaseService.updateById<ImageModel>(
       token,
@@ -119,8 +119,15 @@ export const ImageService = {
     );
   },
 
-  /** SERVICE: delete */
-  async delete(token: string, mediaId: string): Promise<boolean> {
-    return await supabaseService.deleteById(token, TABLE, mediaId);
+  async delete(token: string, mediaId: string): Promise<void> {
+    try {
+      await supabaseService.deleteById(token, TABLE, mediaId);
+      const oldRecord = await ImageService.getOne(token, mediaId);
+      if (oldRecord) await deleteOldFileFromBucket(BUCKET, oldRecord.file_url);
+
+      return Promise.resolve();
+    } catch (err) {
+      return Promise.reject(err);
+    }
   },
 };

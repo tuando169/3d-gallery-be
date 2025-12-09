@@ -1,17 +1,21 @@
-import { supabaseAdmin } from '../../config/supabase';
-import { Object3DModel } from './object3dModel';
-import { getUserFromToken, uploadFileToBucket } from '../../util';
-import { supabaseService } from '../supabase/supabaseService';
+import { supabaseAdmin } from "../../config/supabase";
+import { Object3DModel } from "./object3dModel";
+import {
+  deleteOldFileFromBucket,
+  getUserFromToken,
+  uploadFileToBucket,
+} from "../../util";
+import { supabaseService } from "../supabase/supabaseService";
 
-const TABLE = 'object3d';
-const BUCKET = 'object3d';
+const TABLE = "object3d";
+const BUCKET = "object3d";
 
 export const Object3DService = {
   /** LIST */
   async getAll(token: string): Promise<Object3DModel[]> {
     const user = await getUserFromToken(token);
-    return await supabaseService.findMany(token, TABLE, '*', (q) =>
-      q.eq('owner_id', user?.user?.id)
+    return await supabaseService.findMany(token, TABLE, "*", (q) =>
+      q.eq("owner_id", user?.user?.id)
     );
   },
 
@@ -20,23 +24,22 @@ export const Object3DService = {
     token: string,
     objectId: string
   ): Promise<Object3DModel | undefined> {
-    return await supabaseService.findById<Object3DModel>(
-      token,
-      TABLE,
-      objectId
+    const list = await Object3DService.getAll(token);
+    return Promise.resolve(
+      list.find((item: Object3DModel) => item.id === objectId)
     );
   },
 
   /** UPLOAD FILE TO STORAGE */
   async uploadGLB(ownerId: string, file: Express.Multer.File) {
-    const filename = `${Date.now()}_${file.originalname.replace(/\s+/g, '_')}`;
+    const filename = `${Date.now()}_${file.originalname.replace(/\s+/g, "_")}`;
     const filepath = `${ownerId}/${filename}`;
 
     // Upload
     const up = await supabaseAdmin.storage
       .from(BUCKET)
       .upload(filepath, file.buffer, {
-        contentType: 'model/gltf-binary',
+        contentType: "model/gltf-binary",
         upsert: false,
       });
     if (up.error) throw up.error;
@@ -88,13 +91,22 @@ export const Object3DService = {
 
     if (file) {
       payload.file_url = await uploadFileToBucket(BUCKET, file);
+      const oldRecord = await Object3DService.getOne(token, objectId);
+      if (oldRecord) await deleteOldFileFromBucket(BUCKET, oldRecord.file_url);
     }
 
     return await supabaseService.updateById(token, TABLE, objectId, payload);
   },
 
   /** DELETE */
-  async delete(token: string, id: string): Promise<boolean> {
-    return await supabaseService.deleteById(token, TABLE, id);
+  async delete(token: string, id: string): Promise<void> {
+    try {
+      await supabaseService.deleteById(token, TABLE, id);
+      const oldRecord = await Object3DService.getOne(token, id);
+      if (oldRecord) await deleteOldFileFromBucket(BUCKET, oldRecord.file_url);
+      return Promise.resolve();
+    } catch (err) {
+      return Promise.reject(err);
+    }
   },
 };

@@ -1,21 +1,22 @@
-import axios from 'axios';
-import FormData from 'form-data';
+import axios from "axios";
+import FormData from "form-data";
 import {
+  deleteOldFileFromBucket,
   getUserFromToken,
   isSuccessfulResponse,
   uploadFileToBucket,
-} from '../../util';
-import { supabaseService } from '../supabase/supabaseService';
-import { AudioModel } from './audioModel';
+} from "../../util";
+import { supabaseService } from "../supabase/supabaseService";
+import { AudioModel } from "./audioModel";
 
-const TABLE = 'audios';
-const BUCKET = 'audio';
+const TABLE = "audios";
+const BUCKET = "audio";
 
 export const AudioService = {
   async getList(token: string): Promise<AudioModel[]> {
     const user = await getUserFromToken(token);
-    return await supabaseService.findMany(token, TABLE, '*', (q: any) =>
-      q.eq('owner_id', user?.user?.id)
+    return await supabaseService.findMany(token, TABLE, "*", (q: any) =>
+      q.eq("owner_id", user?.user?.id)
     );
   },
 
@@ -23,7 +24,10 @@ export const AudioService = {
     token: string,
     audioId: string
   ): Promise<AudioModel | undefined> {
-    return await supabaseService.findById<AudioModel>(token, TABLE, audioId);
+    const list = await AudioService.getList(token);
+    return Promise.resolve(
+      list.find((item: AudioModel) => item.id === audioId)
+    );
   },
 
   /** SERVICE: handle file upload + moderation + insert record */
@@ -48,7 +52,7 @@ export const AudioService = {
     const meta = await supabaseService.getBucketInfo(BUCKET);
     const isPublicBucket = !!meta?.public;
 
-    const safe = (file.originalname || 'upload.bin').replace(/[^\w.\-]/g, '_');
+    const safe = (file.originalname || "upload.bin").replace(/[^\w.\-]/g, "_");
     const path = `${Date.now()}_${safe}`;
 
     // Upload
@@ -71,7 +75,6 @@ export const AudioService = {
       title: body.title,
       metadata: body.metadata,
     };
-    console.log(payload);
 
     return await supabaseService.create<AudioModel>(token, TABLE, payload);
   },
@@ -88,7 +91,12 @@ export const AudioService = {
       title: body.title,
       owner_id: (await getUserFromToken(token))?.user?.id,
     };
-    if (file) payload.file_url = await uploadFileToBucket(BUCKET, file);
+    if (file) {
+      payload.file_url = await uploadFileToBucket(BUCKET, file);
+
+      const oldRecord = await AudioService.getOne(token, id);
+      if (oldRecord) await deleteOldFileFromBucket(BUCKET, oldRecord.file_url);
+    }
     return await supabaseService.updateById<AudioModel>(
       token,
       TABLE,
@@ -98,7 +106,13 @@ export const AudioService = {
   },
 
   /** SERVICE: delete */
-  async delete(token: string, mediaId: string): Promise<boolean> {
-    return await supabaseService.deleteById(token, TABLE, mediaId);
+  async delete(token: string, mediaId: string): Promise<void> {
+    try {
+      await supabaseService.deleteById(token, TABLE, mediaId);
+      const oldRecord = await AudioService.getOne(token, mediaId);
+      if (oldRecord) await deleteOldFileFromBucket(BUCKET, oldRecord.file_url);
+    } catch (err) {
+      return Promise.reject(err);
+    }
   },
 };
