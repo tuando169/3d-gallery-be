@@ -6,6 +6,7 @@ import {
   uploadFileToBucket,
 } from "../../util";
 import { supabaseService } from "../supabase/supabaseService";
+import { RoleEnum } from "../../constants/role";
 
 const TABLE = "object3d";
 const BUCKET = "object3d";
@@ -14,6 +15,8 @@ export const Object3DService = {
   /** LIST */
   async getAll(token: string): Promise<Object3DModel[]> {
     const user = await getUserFromToken(token);
+    if (user.user?.role == RoleEnum.Admin)
+      return await supabaseService.findMany(token, TABLE, "*", (q: any) => q);
     return await supabaseService.findMany(token, TABLE, "*", (q) =>
       q.eq("owner_id", user?.user?.id)
     );

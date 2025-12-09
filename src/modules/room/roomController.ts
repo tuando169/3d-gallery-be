@@ -1,5 +1,5 @@
-import type { Request, Response, NextFunction } from 'express';
-import { RoomService } from './roomService';
+import type { Request, Response, NextFunction } from "express";
+import { RoomService } from "./roomService";
 
 export const RoomController = {
   async getPublic(req: Request, res: Response, next: NextFunction) {
@@ -31,7 +31,7 @@ export const RoomController = {
   async getOne(req: Request, res: Response, next: NextFunction) {
     try {
       const data = await RoomService.getOne(req.accessToken!, req.params.id);
-      if (!data) return res.status(404).json({ message: 'Room not found' });
+      if (!data) return res.status(404).json({ message: "Room not found" });
 
       res.json(data);
     } catch (err) {
@@ -65,7 +65,6 @@ export const RoomController = {
       next(err);
     }
   },
-  
 
   /** PATCH /rooms/:id */
   async update(req: Request, res: Response, next: NextFunction) {
@@ -84,11 +83,12 @@ export const RoomController = {
   },
 
   /** DELETE /rooms */
-  async remove(req: Request, res: Response, next: NextFunction) {
+  async delete(req: Request, res: Response, next: NextFunction) {
     try {
       const id = req.params.id;
       await RoomService.delete(req.accessToken!, id);
-      res.status(200);
+
+      return res.status(200).json();
     } catch (err) {
       next(err);
     }

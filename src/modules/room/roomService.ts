@@ -1,23 +1,23 @@
-import { UserService } from '../user/userService';
-import { getUserFromToken, uploadFileToBucket } from '../../util';
-import { VisibilityEnum } from '../../constants/visibility';
-import { RoomCollabModel, RoomModel } from './roomModel';
-import { supabaseService } from '../supabase/supabaseService';
-import { UserModel } from '../user/userModel';
+import { UserService } from "../user/userService";
+import { getUserFromToken, uploadFileToBucket } from "../../util";
+import { VisibilityEnum } from "../../constants/visibility";
+import { RoomCollabModel, RoomModel } from "./roomModel";
+import { supabaseService } from "../supabase/supabaseService";
+import { UserModel } from "../user/userModel";
 
-const TABLE = 'rooms';
-const COLLAB_TABLE = 'room_collaborators';
+const TABLE = "rooms";
+const COLLAB_TABLE = "room_collaborators";
 
 function isAdmin(user?: UserModel) {
-  return user?.role === 'admin';
+  return user?.role === "admin";
 }
 
 function normalizeTags(body: any) {
-  if (typeof body.tags === 'string') {
+  if (typeof body.tags === "string") {
     const trimmed = body.tags.trim();
     body.tags = trimmed
       ? trimmed
-          .split(',')
+          .split(",")
           .map((s: string) => s.trim())
           .filter(Boolean)
       : [];
@@ -26,28 +26,27 @@ function normalizeTags(body: any) {
 
 export const RoomService = {
   getPublic: async (): Promise<RoomModel[]> => {
-    const data = await supabaseService.findAllAdmin(TABLE, '*', (q) =>
-      q.eq('visibility', VisibilityEnum.Public)
+    const data = await supabaseService.findAllAdmin(TABLE, "*", (q) =>
+      q.eq("visibility", VisibilityEnum.Public)
     );
-    return Promise.resolve(data.filter((room) => room.type != 'template'));
+    return Promise.resolve(data.filter((room) => room.type != "template"));
   },
   async getList(token: string): Promise<RoomModel[]> {
     try {
       const user = await getUserFromToken(token);
       const isAdminUser = isAdmin(user.user);
-      const allRooms = await supabaseService.findAllAdmin(TABLE, '*', (q) => q);
+      const allRooms = await supabaseService.findAllAdmin(TABLE, "*", (q) => q);
       let data: RoomModel[];
       console.log(user);
 
       if (isAdminUser) {
-        console.log('Admin user detected');
         data = allRooms;
       } else {
         const userRooms = allRooms.filter((r) => r.owner_id === user.user?.id);
         const collabRooms = await supabaseService.findAllAdmin(
           COLLAB_TABLE,
-          'room_id',
-          (q: any) => q.eq('user_id', user.user?.id)
+          "room_id",
+          (q: any) => q.eq("user_id", user.user?.id)
         );
 
         const uniqueRoomIds = new Set([
@@ -83,10 +82,9 @@ export const RoomService = {
   },
 
   getTemplateList: async (): Promise<RoomModel[]> => {
-    const data = await supabaseService.findAllAdmin(TABLE, '*', (q) =>
-      q.eq('type', 'template')
+    const data = await supabaseService.findAllAdmin(TABLE, "*", (q) =>
+      q.eq("type", "template")
     );
-    console.log(data);
 
     return Promise.resolve(data);
   },
@@ -96,8 +94,8 @@ export const RoomService = {
     console.log(user);
 
     if (isAdmin(user.user)) {
-      const rooms = await supabaseService.findAllAdmin(TABLE, '*', (q: any) =>
-        q.eq('id', roomId)
+      const rooms = await supabaseService.findAllAdmin(TABLE, "*", (q: any) =>
+        q.eq("id", roomId)
       );
       return rooms[0] || undefined;
     }
@@ -118,7 +116,7 @@ export const RoomService = {
 
     normalizeTags(body);
 
-    body.thumbnail = await uploadFileToBucket('images', thumbnail);
+    body.thumbnail = await uploadFileToBucket("images", thumbnail);
     return supabaseService.create(token, TABLE, body);
   },
 
@@ -151,36 +149,22 @@ export const RoomService = {
     if (!isAdmin(user.user)) {
       const room = await supabaseService.findById(token, TABLE, roomId);
       if (!room) {
-        throw { status: 404, message: 'Not found' };
+        throw { status: 404, message: "Not found" };
       }
       if (room.owner_id !== user.user?.id) {
-        throw { status: 401, message: 'Not allowed' };
+        throw { status: 401, message: "Not allowed" };
       }
     }
 
     normalizeTags(body);
     if (thumbnail)
-      body.thumbnail = await uploadFileToBucket('images', thumbnail);
+      body.thumbnail = await uploadFileToBucket("images", thumbnail);
     return await supabaseService.updateById(token, TABLE, roomId, body);
   },
 
   /** DELETE ROOM */
   async delete(token: string, id: string): Promise<void> {
-    const user = await getUserFromToken(token);
-    if (!isAdmin(user.user)) {
-      const room = await supabaseService.findById(token, TABLE, id);
-      console.log(room);
-
-      if (!room) {
-        throw { status: 404, message: 'Not found' };
-      }
-      if (room.owner_id !== user.user?.id) {
-        throw { status: 401, message: 'Not allowed' };
-      }
-    }
-
     await supabaseService.deleteById(token, TABLE, id);
-
-    return Promise.resolve();
+    Promise.resolve();
   },
 };

@@ -8,6 +8,7 @@ import {
 } from "../../util";
 import { supabaseService } from "../supabase/supabaseService";
 import { AudioModel } from "./audioModel";
+import { RoleEnum } from "../../constants/role";
 
 const TABLE = "audios";
 const BUCKET = "audio";
@@ -15,6 +16,8 @@ const BUCKET = "audio";
 export const AudioService = {
   async getList(token: string): Promise<AudioModel[]> {
     const user = await getUserFromToken(token);
+    if (user.user?.role == RoleEnum.Admin)
+      return await supabaseService.findMany(token, TABLE, "*", (q: any) => q);
     return await supabaseService.findMany(token, TABLE, "*", (q: any) =>
       q.eq("owner_id", user?.user?.id)
     );

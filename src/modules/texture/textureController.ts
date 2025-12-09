@@ -1,6 +1,6 @@
-import type { Request, Response, NextFunction } from 'express';
-import { TextureService } from './textureService';
-import { supabaseService } from '../supabase/supabaseService';
+import type { Request, Response, NextFunction } from "express";
+import { TextureService } from "./textureService";
+import { supabaseService } from "../supabase/supabaseService";
 
 export const TextureController = {
   async getAll(req: Request, res: Response, next: NextFunction) {
@@ -24,7 +24,7 @@ export const TextureController = {
   async create(req: Request, res: Response, next: NextFunction) {
     try {
       const files = req.files as
-        | Record<string, Express.Multer.File>
+        | Record<string, Express.Multer.File[]>
         | undefined;
 
       const fileAlb = files?.alb;
@@ -33,8 +33,8 @@ export const TextureController = {
 
       const data = await TextureService.create(
         {
-          name: req.body.name ?? 'Untitled Texture',
-          object3d_id: req.body.object3d_id,
+          name: req.body.name ?? "Untitled Texture",
+          texture_for: req.body.texture_for,
         },
         {
           alb: fileAlb,

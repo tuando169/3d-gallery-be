@@ -8,6 +8,7 @@ import {
   uploadFileToBucket,
 } from "../../util";
 import { supabaseService } from "../supabase/supabaseService";
+import { RoleEnum } from "../../constants/role";
 
 const TABLE = "images";
 const BUCKET = "images";
@@ -15,6 +16,8 @@ const BUCKET = "images";
 export const ImageService = {
   async getList(token: string): Promise<ImageModel[]> {
     const user = await getUserFromToken(token);
+    if (user.user?.role == RoleEnum.Admin)
+      return await supabaseService.findMany(token, TABLE, "*", (q: any) => q);
     return await supabaseService.findMany(token, TABLE, "*", (q: any) =>
       q.eq("owner_id", user?.user?.id)
     );

@@ -1,16 +1,16 @@
 export interface TextureModel {
   id: string;
-  name: string;
+  title: string;
   alb_url?: string;
   nor_url?: string;
   orm_url?: string;
-  object3d_id: string;
+  texture_for: string;
 }
 
 export interface TextureUploadData {
-  name: string;
+  title: string;
   alb?: File;
   nor?: File;
   orm?: File;
-  object3d_id: string;
+  texture_for: string;
 }

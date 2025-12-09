@@ -4,11 +4,15 @@ export interface NewsModel {
   id: string;
   owner_id: string;
 
+  thumbnail?: string;
   title?: string;
   slug: string;
   description?: string;
 
-  layout_json: Record<string, any>;
+  layout_json: Array<{
+    type: NewsItemTypeEnum;
+    content: string;
+  }>;
 
   visibility: string;
 
@@ -16,16 +20,21 @@ export interface NewsModel {
   updated_at: string;
 }
 
-export interface NewsItemModel {
-  id: string;
+export interface NewsUploadModel {
+  owner_id: string;
 
-  magazine_id: string;
-  item_type: NewsItemTypeEnum;
+  thumbnail?: File;
+  title?: string;
+  slug: string;
+  description?: string;
 
-  ref_id?: string;
-  sort_index?: number;
+  layout_json: Array<{
+    type: NewsItemTypeEnum;
+    content: string | File;
+  }>;
 
-  props_json?: Record<string, any>;
+  visibility: string;
 
   created_at: string;
+  updated_at: string;
 }

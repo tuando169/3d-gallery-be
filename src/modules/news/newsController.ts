@@ -1,5 +1,5 @@
-import type { Request, Response, NextFunction } from 'express';
-import { NewsService } from './newsService';
+import type { Request, Response, NextFunction } from "express";
+import { NewsService } from "./newsService";
 
 export const NewsController = {
   async getList(req: Request, res: Response, next: NextFunction) {
@@ -13,19 +13,27 @@ export const NewsController = {
 
   async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const data = await NewsService.create(req.accessToken!, req.body);
+      // req.files được multer.any() sinh ra
+      const files = req.files as Express.Multer.File[];
+
+      const data = await NewsService.create(
+        req.accessToken!, // token
+        req.body,
+        files
+      );
+
       res.status(201).json(data);
     } catch (err) {
       next(err);
     }
   },
-
   async update(req: Request, res: Response, next: NextFunction) {
     try {
       const data = await NewsService.update(
         req.accessToken!,
         req.params.id,
-        req.body
+        req.body,
+        req.files as Express.Multer.File[]
       );
       res.json(data);
     } catch (err) {
