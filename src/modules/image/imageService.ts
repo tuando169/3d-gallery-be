@@ -90,7 +90,6 @@ export const ImageService = {
     const payload: Partial<ImageModel> = {
       file_url: fileUrl,
       owner_id: owner_id,
-      room_id: body.room_id,
       title: body.title,
     };
 
@@ -105,7 +104,7 @@ export const ImageService = {
   ): Promise<ImageModel> {
     const payload: Partial<ImageModel> = {
       id: id,
-      room_id: body.room_id,
+      room_ids: body.room_ids,
       title: body.title,
     };
     const oldRecord = await ImageService.getOne(token, id);

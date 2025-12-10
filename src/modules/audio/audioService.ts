@@ -93,6 +93,7 @@ export const AudioService = {
       id: id,
       title: body.title,
       owner_id: (await getUserFromToken(token))?.user?.id,
+      room_ids: body.room_ids,
     };
     if (file) {
       payload.file_url = await uploadFileToBucket(BUCKET, file);

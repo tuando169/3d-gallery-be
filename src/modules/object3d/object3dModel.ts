@@ -7,5 +7,5 @@ export interface Object3DModel {
 
   created_at: string;
 
-  room_id: string;
+  room_ids?: string[];
 }
