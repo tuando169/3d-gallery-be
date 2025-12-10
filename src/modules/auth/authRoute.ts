@@ -6,7 +6,7 @@ const authRoutes = Router();
 
 authRoutes.post('/signup', AuthController.signup);
 authRoutes.post('/login', AuthController.login);
-authRoutes.post('/refresh', AuthGuard.verifyToken, AuthController.refresh);
+authRoutes.post('/refresh', AuthController.refresh);
 
 authRoutes.post('/logout', AuthGuard.verifyToken, AuthController.logout);
 
