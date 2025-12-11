@@ -9,7 +9,7 @@ const upload = multer();
 
 router.get("/public", RoomController.getPublic);
 router.get("/", AuthGuard.verifyToken, RoomController.getList);
-router.get("/template", AuthGuard.verifyToken, RoomController.getTemplateList);
+router.get("/template", RoomController.getTemplateList);
 
 router.get("/:id", AuthGuard.verifyToken, RoomController.getOne);
 
