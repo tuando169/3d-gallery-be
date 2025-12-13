@@ -1,6 +1,7 @@
 import { AuthResponse, UserResponse } from '@supabase/supabase-js';
 
 import { supabaseAdmin, supabasePublic } from '../../config/supabase';
+import { uploadFileToBucket } from '../../util';
 
 export const AuthService = {
   /**
@@ -14,6 +15,7 @@ export const AuthService = {
     password: string;
     name: string;
     role: string;
+    avatar: Express.Multer.File;
   }) {
     const { email, password, name, role } = params;
 
@@ -29,7 +31,7 @@ export const AuthService = {
 
     const userId = authData.user?.id;
     if (!userId) throw new Error('Không lấy được userId từ Supabase');
-
+    const avatarUrl = await uploadFileToBucket("images", params.avatar)
     // 2. Insert/update bảng users
     const { data: userData, error: userError } = await supabaseAdmin
       .from('users')
@@ -39,6 +41,7 @@ export const AuthService = {
           email,
           name,
           role,
+          avatar: avatarUrl,
         },
         { onConflict: 'id' }
       )
