@@ -1,8 +1,7 @@
 import axios from 'axios';
 import FormData from 'form-data';
 import { isSuccessfulResponse } from '../../util';
-import { ImageAnalyzeModel } from '../image/imageModel';
-import { Generate3DModel } from './thirdPartyModel';
+import { Generate3DModel, ImageAnalyzeModel } from './thirdPartyModel';
 
 const baseUrl = 'https://api.thirdparty.com';
 const gen3DUrl = baseUrl + '/generate-3d';
