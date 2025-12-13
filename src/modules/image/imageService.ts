@@ -1,6 +1,6 @@
 import axios from "axios";
 import FormData from "form-data";
-import { ImageAnalyzeModel, ImageModel } from "./imageModel";
+import {  ImageModel } from "./imageModel";
 import {
   deleteOldFileFromBucket,
   getUserFromToken,
@@ -55,23 +55,6 @@ export const ImageService = {
     const safe = (file.originalname || "upload.bin").replace(/[^\w.\-]/g, "_");
     const path = `${Date.now()}_${safe}`;
 
-    // const form = new FormData();
-    // form.append("image", file.buffer, {
-    //   filename: file.originalname,
-    //   contentType: file.mimetype,
-    // });
-
-    // const analyze = await axios.post(
-    //   "https://zipppier-henry-bananas.ngrok-free.dev/analyze",
-    //   form,
-    //   { headers: form.getHeaders() }
-    // );
-
-    // if (analyze && isSuccessfulResponse(analyze)) {
-    //   const data: ImageAnalyzeModel = analyze.data;
-    //   if (data.is_nsfw)
-    //     throw { status: 422, message: "Media file is not approved!" };
-    // }
 
     await supabaseService.uploadObject(
       BUCKET,

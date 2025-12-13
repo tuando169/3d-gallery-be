@@ -1,28 +1,35 @@
-import { supabaseAdmin } from "../../config/supabase";
-import { Object3DModel } from "./object3dModel";
+import { supabaseAdmin } from '../../config/supabase';
+import { Object3DModel } from './object3dModel';
 import {
   deleteOldFileFromBucket,
   getUserFromToken,
   uploadFileToBucket,
-} from "../../util";
-import { supabaseService } from "../supabase/supabaseService";
-import { RoleEnum } from "../../constants/role";
+} from '../../util';
+import { supabaseService } from '../supabase/supabaseService';
+import { RoleEnum } from '../../constants/role';
+import { ThirdPartyService } from '../third-party/thirdPartyService';
 
-const TABLE = "object3d";
-const BUCKET = "object3d";
+const TABLE = 'object3d';
+const BUCKET = 'object3d';
 
 export const Object3DService = {
-  /** LIST */
   async getAll(token: string): Promise<Object3DModel[]> {
     const user = await getUserFromToken(token);
     if (user.user?.role == RoleEnum.Admin)
-      return await supabaseService.findMany(token, TABLE, "*", (q: any) => q);
-    return await supabaseService.findMany(token, TABLE, "*", (q) =>
-      q.eq("owner_id", user?.user?.id)
+      return await supabaseService.findMany(token, TABLE, '*', (q: any) => q);
+    return await supabaseService.findMany(token, TABLE, '*', (q) =>
+      q.eq('owner_id', user?.user?.id)
     );
   },
 
-  /** Get one by ID */
+  async gen3DFromImage(
+    token: string,
+    file: Express.Multer.File
+  ): Promise<File> {
+    const outputFile = await ThirdPartyService.gen3DFromImage(file);
+    return outputFile;
+  },
+
   async getOne(
     token: string,
     objectId: string
@@ -31,28 +38,6 @@ export const Object3DService = {
     return Promise.resolve(
       list.find((item: Object3DModel) => item.id === objectId)
     );
-  },
-
-  /** UPLOAD FILE TO STORAGE */
-  async uploadGLB(ownerId: string, file: Express.Multer.File) {
-    const filename = `${Date.now()}_${file.originalname.replace(/\s+/g, "_")}`;
-    const filepath = `${ownerId}/${filename}`;
-
-    // Upload
-    const up = await supabaseAdmin.storage
-      .from(BUCKET)
-      .upload(filepath, file.buffer, {
-        contentType: "model/gltf-binary",
-        upsert: false,
-      });
-    if (up.error) throw up.error;
-
-    // Get public URL
-    const { data: pub } = supabaseAdmin.storage
-      .from(BUCKET)
-      .getPublicUrl(filepath);
-
-    return pub?.publicUrl || filepath;
   },
 
   /** CREATE */
@@ -70,6 +55,7 @@ export const Object3DService = {
     const payload: Partial<Object3DModel> = {
       owner_id: ownerId,
       file_url: fileUrl,
+      title: body.title,
       metadata: body.metadata,
     };
 

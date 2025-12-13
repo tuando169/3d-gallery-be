@@ -11,6 +11,18 @@ export const Object3DController = {
     }
   },
 
+  async gen3DFromImage(req: Request, res: Response, next: NextFunction) {
+    try {
+      const data = await Object3DService.gen3DFromImage(
+        req.accessToken!,
+        req.file!
+      );
+      res.json(data);
+    } catch (err) {
+      next(err);
+    }
+  },
+
   async getOne(req: Request, res: Response, next: NextFunction) {
     try {
       const data = await Object3DService.getOne(

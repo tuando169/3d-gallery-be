@@ -31,13 +31,16 @@ export const AuthService = {
 
     const userId = authData.user?.id;
     if (!userId) throw new Error('Không lấy được userId từ Supabase');
-    const avatarUrl = await uploadFileToBucket("images", params.avatar)
+    console.log('User ID:', params.avatar);
+
+    const avatarUrl = await uploadFileToBucket('images', params.avatar);
     // 2. Insert/update bảng users
+
     const { data: userData, error: userError } = await supabaseAdmin
       .from('users')
       .upsert(
         {
-          id: userId, // khóa chính
+          id: userId,
           email,
           name,
           role,

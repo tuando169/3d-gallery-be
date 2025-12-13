@@ -11,7 +11,3 @@ export interface ImageModel {
   created_at: string;
 }
 
-export interface ImageAnalyzeModel {
-  ok: boolean;
-  is_nsfw: boolean;
-}
