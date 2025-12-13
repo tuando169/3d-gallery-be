@@ -1,6 +1,6 @@
-import type { Request, Response, NextFunction } from "express";
-import { TextureService } from "./textureService";
-import { supabaseService } from "../supabase/supabaseService";
+import type { Request, Response, NextFunction } from 'express';
+import { TextureService } from './textureService';
+import { supabaseService } from '../supabase/supabaseService';
 
 export const TextureController = {
   async getAll(req: Request, res: Response, next: NextFunction) {
@@ -33,7 +33,7 @@ export const TextureController = {
 
       const data = await TextureService.create(
         {
-          name: req.body.name ?? "Untitled Texture",
+          title: req.body.title,
           texture_for: req.body.texture_for,
         },
         {

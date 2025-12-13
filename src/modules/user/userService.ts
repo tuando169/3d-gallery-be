@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '../../config/supabase';
+import { uploadFileToBucket } from '../../util';
 import { UserModel } from './userModel';
 
 export interface UserPayload {
@@ -64,6 +65,14 @@ export const UserService = {
 
     if (error) throw error;
     return data;
+  },
+
+  async updateAvatar(
+    id: string,
+    file: Express.Multer.File
+  ): Promise<UserModel> {
+    const avatar_url = await uploadFileToBucket('images', file);
+    return UserService.update(id, { avatar: avatar_url });
   },
 
   /**

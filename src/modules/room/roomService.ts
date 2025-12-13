@@ -159,8 +159,10 @@ export const RoomService = {
     }
 
     normalizeTags(body);
-    if (thumbnail)
+    if (body.thumbnailUrl) body.thumbnail = body.thumbnailUrl;
+    else if (thumbnail)
       body.thumbnail = await uploadFileToBucket('images', thumbnail);
+
     return await supabaseService.updateById(token, TABLE, roomId, body);
   },
 

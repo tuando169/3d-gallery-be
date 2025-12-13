@@ -1,10 +1,10 @@
-import { uploadFileToBucket } from "../../util";
-import { supabaseService } from "../supabase/supabaseService";
-import { TextureModel } from "./textureModel";
-import path from "path";
+import { uploadFileToBucket } from '../../util';
+import { supabaseService } from '../supabase/supabaseService';
+import { TextureModel } from './textureModel';
+import path from 'path';
 
-const TABLE = "textures";
-const BUCKET = "textures";
+const TABLE = 'textures';
+const BUCKET = 'textures';
 
 export const TextureService = {
   async getAll(): Promise<TextureModel[]> {
@@ -25,8 +25,9 @@ export const TextureService = {
     }
   ): Promise<TextureModel> {
     const { title, texture_for } = body;
+    console.log(body);
 
-    if (!texture_for) throw { status: 400, message: "texture_for required" };
+    if (!texture_for) throw { status: 400, message: 'texture_for required' };
 
     const fileAlb = files?.alb?.[0];
     const fileNor = files?.nor?.[0];
@@ -35,11 +36,11 @@ export const TextureService = {
     const hasAnyFile = fileAlb || fileNor || fileOrm;
 
     if (!hasAnyFile) {
-      throw { status: 400, message: "Provide alb/nor/orm or *_url" };
+      throw { status: 400, message: 'Provide alb/nor/orm or *_url' };
     }
 
     const payload: Partial<TextureModel> = {
-      title: title || "Untitled Texture",
+      title: title || 'Untitled Texture',
       texture_for: texture_for,
       alb_url: await uploadFileToBucket(BUCKET, fileAlb!),
       nor_url: await uploadFileToBucket(BUCKET, fileNor!),

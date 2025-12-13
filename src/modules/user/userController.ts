@@ -46,6 +46,19 @@ export const UserController = {
     }
   },
 
+  /** PATCH /users/:id/avatar */
+  async updateAvatar(req: Request, res: Response, next: NextFunction) {
+    try {
+      const updated = await UserService.updateAvatar(
+        req.params.id,
+        req.file as Express.Multer.File
+      );
+      res.json(updated);
+    } catch (err) {
+      next(err);
+    }
+  },
+
   /** DELETE /users/:id */
   async remove(req: Request, res: Response, next: NextFunction) {
     try {
