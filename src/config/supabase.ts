@@ -1,4 +1,3 @@
-// config/supabase.js
 import { createClient } from '@supabase/supabase-js';
 import { config } from './env';
 import { Request } from 'express';

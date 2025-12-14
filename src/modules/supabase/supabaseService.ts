@@ -30,7 +30,7 @@ export const supabaseService = {
     table: string,
     id: string,
     select = '*'
-  ): Promise<T | null> {
+  ): Promise<T | undefined> {
     const { data, error } = await supabaseAdmin
       .from(table)
       .select(select)
@@ -42,7 +42,7 @@ export const supabaseService = {
 
       throw error;
     }
-    return data as T | null;
+    return data as T | undefined;
   },
 
   /** Insert record (admin bypass) */

@@ -5,9 +5,9 @@ import { AuthGuard } from "../../middleware/authGuard"; // Import AuthGuard củ
 const router = Router();
 
 // API tạo link thanh toán (Cần đăng nhập)
-router.post("/create-link", AuthGuard.verifyToken, PaymentController.createLink);
+router.post("/register-license", AuthGuard.verifyToken, PaymentController.registerLicense);
+router.post("/buy-template", AuthGuard.verifyToken, PaymentController.buyTemplate);
 
-// API nhận Webhook (Không cần đăng nhập, PayOS gọi vào)
 router.post("/payos-hook", PaymentController.receiveWebhook);
 
 export default router;

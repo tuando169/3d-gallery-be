@@ -15,7 +15,9 @@ export const LicenseService = {
 
     return await supabaseService.create(token, TABLE, body);
   },
-
+  async getOne(id: string): Promise<LicenseModel | undefined> {
+    return await supabaseService.findByIdAdmin(TABLE, id);
+  },
   async update(
     token: string,
     id: string,

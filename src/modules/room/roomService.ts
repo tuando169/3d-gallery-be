@@ -17,9 +17,9 @@ function normalizeTags(body: any) {
     const trimmed = body.tags.trim();
     body.tags = trimmed
       ? trimmed
-          .split(',')
-          .map((s: string) => s.trim())
-          .filter(Boolean)
+        .split(',')
+        .map((s: string) => s.trim())
+        .filter(Boolean)
       : [];
   }
 }
@@ -81,7 +81,7 @@ export const RoomService = {
     }
   },
 
-  getTemplateList: async (): Promise<RoomModel[]> => {
+  getPublicTemplateList: async (): Promise<RoomModel[]> => {
     const data = await supabaseService.findAllAdmin(TABLE, '*', (q) =>
       q.eq('type', 'template')
     );
@@ -130,21 +130,34 @@ export const RoomService = {
     return supabaseService.create(token, TABLE, payload);
   },
 
-  async buyTemplates(
+  async buyTemplate(
     token: string,
-    body: { template_ids: string[] }
+    body: { template_id: string }
   ): Promise<void> {
     const user = await getUserFromToken(token);
     const userId = user.user?.id;
-    const templateIds = body.template_ids;
+    const templateId = body.template_id;
     const promises: Promise<RoomCollabModel>[] = [];
-    templateIds.forEach((id) => {
-      const payload: RoomCollabModel = {
-        room_id: id,
-        user_id: userId!,
-      };
-      promises.push(supabaseService.create(token, COLLAB_TABLE, payload));
-    });
+    const payload: RoomCollabModel = {
+      room_id: templateId,
+      user_id: userId!,
+    };
+    promises.push(supabaseService.insertAdmin(COLLAB_TABLE, payload));
+    await Promise.all(promises);
+    return Promise.resolve();
+  },
+
+  async buyTemplateByUserId(
+    userId: string,
+    body: { template_id: string }
+  ): Promise<void> {
+    const templateId = body.template_id;
+    const promises: Promise<RoomCollabModel>[] = [];
+    const payload: RoomCollabModel = {
+      room_id: templateId,
+      user_id: userId!,
+    };
+    promises.push(supabaseService.insertAdmin(COLLAB_TABLE, payload));
     await Promise.all(promises);
     return Promise.resolve();
   },

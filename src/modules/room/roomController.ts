@@ -21,7 +21,7 @@ export const RoomController = {
 
   async getTemplateList(req: Request, res: Response, next: NextFunction) {
     try {
-      const data = await RoomService.getTemplateList();
+      const data = await RoomService.getPublicTemplateList();
       res.json(data);
     } catch (err) {
       next(err);
@@ -56,7 +56,7 @@ export const RoomController = {
 
   async buyTemplates(req: Request, res: Response, next: NextFunction) {
     try {
-      const created = await RoomService.buyTemplates(
+      const created = await RoomService.buyTemplate(
         req.accessToken!,
         req.body
       );

@@ -7,9 +7,14 @@ export const config: Record<string, any> = {
   anonKey: process.env.SUPABASE_ANON_KEY,
   serviceRole:
     process.env.SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY,
+  payos: {
+    clientId: process.env.PAYOS_CLIENTID,
+    apiKey: process.env.PAYOS_APIKEY,
+    checksumKey: process.env.PAYOS_CHECKSUMKEY
+  }
 };
 
-['supabaseUrl', 'anonKey', 'serviceRole'].forEach((key) => {
+['supabaseUrl', 'anonKey', 'serviceRole', 'payos'].forEach((key) => {
   if (!config[key]) {
     console.warn(`[config] Missing ${key}. Did you create a .env file?`);
   }

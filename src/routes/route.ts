@@ -8,6 +8,7 @@ import userRoutes from '../modules/user/userRoute';
 import textureRoutes from '../modules/texture/textureRoute';
 import audioRoutes from '../modules/audio/audioRoute';
 import licenseRoutes from '../modules/license/licenseRoute';
+import paymentRoutes from '../modules/payment/paymentRoute';
 
 const router = Router();
 
@@ -24,5 +25,6 @@ router.use('/room', roomRoutes);
 router.use('/user', userRoutes);
 router.use('/texture', textureRoutes);
 router.use('/license', licenseRoutes);
+router.use('/payment', paymentRoutes);
 
 export default router;

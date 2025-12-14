@@ -19,7 +19,7 @@ export interface RoomModel {
   tags?: string[];
   tag?: string;
   thumbnail?: string;
-
+  price?: number;
   created_at: string;
   updated_at: string;
 }
