@@ -158,15 +158,6 @@ export const PaymentService = {
   async handlePaymentWebhook(webhookData: any) {
     console.log("🔔 [WEBHOOK] PayOS payload:", webhookData);
 
-    /**
-     * 1️⃣ Verify webhook PayOS
-     */
-    const isValid = payos.verifyPaymentWebhookData(webhookData);
-    if (!isValid) {
-      console.error("❌ [WEBHOOK] Invalid PayOS signature");
-      throw new Error("Invalid PayOS webhook signature");
-    }
-
     const { orderCode, status, amount } = webhookData.data;
 
     /**
