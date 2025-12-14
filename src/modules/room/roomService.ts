@@ -115,12 +115,19 @@ export const RoomService = {
     if (!isAdmin(user.user)) body.owner_id = user.user?.id;
 
     normalizeTags(body);
-    if (thumbnail)
-      body.thumbnail = await uploadFileToBucket('images', thumbnail);
-    else if (body.thumbnailUrl) body.thumbnail = body.thumbnailUrl;
-    console.log(body);
+    normalizeTags(body);
 
-    return supabaseService.create(token, TABLE, body);
+    const { thumbnailUrl, ...payload } = body as any;
+
+    if (thumbnailUrl) {
+      payload.thumbnail = thumbnailUrl;
+    } else if (thumbnail) {
+      payload.thumbnail = await uploadFileToBucket('images', thumbnail);
+    }
+
+    console.log(payload);
+
+    return supabaseService.create(token, TABLE, payload);
   },
 
   async buyTemplates(

@@ -3,28 +3,31 @@ import FormData from 'form-data';
 import { isSuccessfulResponse } from '../../util';
 import { Generate3DModel, ImageAnalyzeModel } from './thirdPartyModel';
 
-const baseUrl = 'https://api.thirdparty.com';
-const gen3DUrl = baseUrl + '/generate-3d';
+const baseUrl = 'https://zipppier-henry-bananas.ngrok-free.dev';
+const gen3DUrl = baseUrl + '/generate3d';
 const analyzeUrl = baseUrl + '/analyze';
 const captionUrl = baseUrl + '/caption';
 
 export const ThirdPartyService = {
   async gen3DFromImage(file: Express.Multer.File): Promise<File> {
+    console.log(file);
+
     const form = new FormData();
     form.append('image', file.buffer, {
       filename: file.originalname,
       contentType: file.mimetype,
     });
-    const res = await axios.post(analyzeUrl, form, {
+    const res = await axios.post(gen3DUrl, form, {
       headers: form.getHeaders(),
     });
 
     if (res && isSuccessfulResponse(res)) {
       const data: Generate3DModel = res.data;
-      return Promise.resolve(data.file);
+      return Promise.resolve(data);
     }
     return Promise.reject('Failed to generate 3D model');
   },
+
   async analyzeImage(file: Express.Multer.File): Promise<any> {
     const form = new FormData();
     form.append('image', file.buffer, {

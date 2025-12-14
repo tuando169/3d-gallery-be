@@ -14,7 +14,11 @@ router.use(AuthGuard.verifyToken);
 
 router.get('/', Object3DController.getAll);
 router.get('/:id', Object3DController.getOne);
-router.get('/from-image',upload.single('file'), Object3DController.gen3DFromImage);
+router.post(
+  '/generate-3d',
+  upload.single('file'),
+  Object3DController.gen3DFromImage
+);
 
 router.post('/', upload.single('file'), Object3DController.create);
 

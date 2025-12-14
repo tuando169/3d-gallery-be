@@ -27,6 +27,8 @@ export const Object3DService = {
     file: Express.Multer.File
   ): Promise<File> {
     const outputFile = await ThirdPartyService.gen3DFromImage(file);
+    console.log(outputFile);
+
     return outputFile;
   },
 
