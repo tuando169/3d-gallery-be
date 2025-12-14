@@ -23,7 +23,7 @@ export const ThirdPartyService = {
 
     if (res && isSuccessfulResponse(res)) {
       const data: Generate3DModel = res.data;
-      return Promise.resolve(data);
+      return Promise.resolve(data.file);
     }
     return Promise.reject('Failed to generate 3D model');
   },
