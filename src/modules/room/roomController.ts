@@ -45,7 +45,7 @@ export const RoomController = {
       const created = await RoomService.create(
         req.accessToken!,
         req.body,
-        req.file!
+        req.file
       );
 
       res.status(201).json(created);

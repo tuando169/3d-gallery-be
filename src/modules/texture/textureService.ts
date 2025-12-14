@@ -29,22 +29,18 @@ export const TextureService = {
 
     if (!texture_for) throw { status: 400, message: 'texture_for required' };
 
-    const fileAlb = files?.alb?.[0];
-    const fileNor = files?.nor?.[0];
-    const fileOrm = files?.orm?.[0];
-
-    const hasAnyFile = fileAlb || fileNor || fileOrm;
-
-    if (!hasAnyFile) {
-      throw { status: 400, message: 'Provide alb/nor/orm or *_url' };
-    }
-
     const payload: Partial<TextureModel> = {
       title: title || 'Untitled Texture',
       texture_for: texture_for,
-      alb_url: await uploadFileToBucket(BUCKET, fileAlb!),
-      nor_url: await uploadFileToBucket(BUCKET, fileNor!),
-      orm_url: await uploadFileToBucket(BUCKET, fileOrm!),
+      alb_url: files?.alb?.[0]
+        ? await uploadFileToBucket(BUCKET, files.alb[0])
+        : undefined,
+      nor_url: files?.nor?.[0]
+        ? await uploadFileToBucket(BUCKET, files.nor[0])
+        : undefined,
+      orm_url: files?.orm?.[0]
+        ? await uploadFileToBucket(BUCKET, files.orm[0])
+        : undefined,
     };
     console.log(payload);
 

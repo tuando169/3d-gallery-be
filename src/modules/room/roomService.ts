@@ -109,14 +109,15 @@ export const RoomService = {
   async create(
     token: string,
     body: any,
-    thumbnail: Express.Multer.File
+    thumbnail?: Express.Multer.File
   ): Promise<RoomModel | undefined> {
     const user = await getUserFromToken(token);
     if (!isAdmin(user.user)) body.owner_id = user.user?.id;
 
     normalizeTags(body);
-
-    body.thumbnail = await uploadFileToBucket('images', thumbnail);
+    if (thumbnail)
+      body.thumbnail = await uploadFileToBucket('images', thumbnail);
+    else if (body.thumbnailUrl) body.thumbnail = body.thumbnailUrl;
     console.log(body);
 
     return supabaseService.create(token, TABLE, body);
