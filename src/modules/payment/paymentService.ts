@@ -158,17 +158,12 @@ export const PaymentService = {
   async handlePaymentWebhook(webhookData: any) {
     console.log("🔔 [WEBHOOK] PayOS payload:", webhookData);
 
-    const { orderCode, status, amount } = webhookData.data;
 
-    /**
-     * 2️⃣ Chỉ xử lý khi thanh toán thành công
-     */
-    if (status !== "PAID") {
-      console.log(
-        `ℹ️ [WEBHOOK] Bỏ qua trạng thái ${status} (orderCode=${orderCode})`
-      );
-      return { success: true };
-    }
+    const { orderCode, amount, code } = webhookData.data;
+
+    // 2️⃣ chỉ xử lý khi thanh toán thành công
+    if (code !== "00") return { success: true };
+
 
     /**
      * 3️⃣ Lấy order theo order_code
