@@ -15,7 +15,10 @@ const BUCKET = 'object3d';
 export const Object3DService = {
   async getAll(token: string): Promise<Object3DModel[]> {
     const user = await getUserFromToken(token);
-    if (user.user?.role == RoleEnum.Admin)
+    if (
+      user.user?.role == RoleEnum.Admin ||
+      user.user?.role == RoleEnum.Designer
+    )
       return await supabaseService.findMany(token, TABLE, '*', (q: any) => q);
     return await supabaseService.findMany(token, TABLE, '*', (q) =>
       q.eq('owner_id', user?.user?.id)
