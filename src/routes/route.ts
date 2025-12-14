@@ -7,6 +7,7 @@ import roomRoutes from '../modules/room/roomRoute';
 import userRoutes from '../modules/user/userRoute';
 import textureRoutes from '../modules/texture/textureRoute';
 import audioRoutes from '../modules/audio/audioRoute';
+import licenseRoutes from '../modules/license/licenseRoute';
 
 const router = Router();
 
@@ -22,5 +23,6 @@ router.use('/object3d', object3dRoutes);
 router.use('/room', roomRoutes);
 router.use('/user', userRoutes);
 router.use('/texture', textureRoutes);
+router.use('/license', licenseRoutes);
 
 export default router;

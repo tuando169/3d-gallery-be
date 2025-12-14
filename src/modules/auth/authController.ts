@@ -4,10 +4,9 @@ import { AuthService } from './authService';
 export const AuthController = {
   async signup(req: Request, res: Response, next: NextFunction) {
     try {
-      console.log(req.body);
-
-      const { email, password,name,role } = req.body;
-      const data = await AuthService.signup({ email, password, name, role });
+      const { email, password, name, role } = req.body;
+      const avatarFile = req.file!;
+      const data = await AuthService.signup({ email, password, name, role, avatar: avatarFile });
       res.status(201).json(data);
     } catch (err) {
       next(err);

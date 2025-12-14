@@ -4,6 +4,7 @@ export interface AudioModel {
   owner_id: string;
 
   file_url: string;
+  room_ids: string[];
 
   metadata?: Record<string, any>;
 

@@ -69,7 +69,6 @@ export const Object3DService = {
 
     const payload: Partial<Object3DModel> = {
       owner_id: ownerId,
-      room_id: body.room_id,
       file_url: fileUrl,
       metadata: body.metadata,
     };
@@ -86,7 +85,7 @@ export const Object3DService = {
   ): Promise<Object3DModel> {
     const ownerId = (await getUserFromToken(token))?.user?.id;
     const payload: Partial<Object3DModel> = {
-      room_id: body.room_id,
+      room_ids: body.room_ids,
       metadata: body.metadata,
       title: body.title,
       owner_id: ownerId,
