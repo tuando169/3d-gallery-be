@@ -4,6 +4,7 @@ import { supabaseAdmin } from "./config/supabase";
 import { UserModel } from "./modules/user/userModel";
 import { UserService } from "./modules/user/userService";
 import { supabaseService } from "./modules/supabase/supabaseService";
+import { ThirdPartyService } from "./modules/third-party/thirdPartyService";
 
 export const isSuccessfulResponse = (response: AxiosResponse): boolean => {
   return response && response.status >= 200 && response.status < 300;
@@ -32,8 +33,19 @@ export async function uploadFileToBucket(
   bucketName: string,
   file: Express.Multer.File
 ): Promise<string> {
+  if (bucketName === "images" || bucketName === "textures") {
+    const isValid = await ThirdPartyService.isValidImage(file);
+    if (!isValid) {
+      throw {
+        status: 422,
+        message: 'Media file is not approved!',
+      };
+    }
+  }
+
   const safe = (file.originalname || "upload.bin").replace(/[^\w.\-]/g, "_");
   const path = `${Date.now()}_${safe}`;
+
   await supabaseService.uploadObject(
     bucketName,
     path,
@@ -41,9 +53,11 @@ export async function uploadFileToBucket(
     file.mimetype,
     true
   );
+
   const fileUrl = await supabaseService.createSignedUrl(bucketName, path);
   return fileUrl;
 }
+
 
 export async function deleteOldFileFromBucket(bucketName: string, url: string) {
   try {

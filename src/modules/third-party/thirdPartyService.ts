@@ -9,26 +9,28 @@ const analyzeUrl = baseUrl + '/analyze';
 const captionUrl = baseUrl + '/caption';
 
 export const ThirdPartyService = {
-  async gen3DFromImage(file: Express.Multer.File): Promise<File> {
-    console.log(file);
-
+  async gen3DFromImage(file: Express.Multer.File): Promise<Buffer> {
     const form = new FormData();
-    form.append('image', file.buffer, {
+
+    form.append("image", file.buffer, {
       filename: file.originalname,
       contentType: file.mimetype,
     });
+
     const res = await axios.post(gen3DUrl, form, {
       headers: form.getHeaders(),
+      responseType: "arraybuffer", // ✅ ĐÚNG
     });
 
-    if (res && isSuccessfulResponse(res)) {
-      const data: Generate3DModel = res.data;
-      return Promise.resolve(data.file);
+    if (res && res.status === 200) {
+      return Buffer.from(res.data); // ✅ GLB buffer
     }
-    return Promise.reject('Failed to generate 3D model');
+
+    throw new Error("Failed to generate 3D model");
   },
 
-  async analyzeImage(file: Express.Multer.File): Promise<any> {
+
+  async isValidImage(file: Express.Multer.File): Promise<boolean> {
     const form = new FormData();
     form.append('image', file.buffer, {
       filename: file.originalname,
@@ -41,9 +43,8 @@ export const ThirdPartyService = {
 
     if (analyze && isSuccessfulResponse(analyze)) {
       const data: ImageAnalyzeModel = analyze.data;
-      if (data.is_nsfw)
-        throw { status: 422, message: 'Media file is not approved!' };
+      if (data.is_nsfw) return Promise.resolve(false);
     }
-    return Promise.resolve({});
+    return Promise.resolve(true);
   },
 };
