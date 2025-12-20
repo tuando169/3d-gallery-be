@@ -1,11 +1,20 @@
-import type { Request, Response, NextFunction } from "express";
-import { LicenseService } from "./licenseService";
-import { LicenseUploadModel } from "./licenseModel";
+import type { Request, Response, NextFunction } from 'express';
+import { LicenseService } from './licenseService';
+import { LicenseUploadModel } from './licenseModel';
 
-export const NewsController = {
+export const LicenseController = {
   async getList(req: Request, res: Response, next: NextFunction) {
     try {
       const data = await LicenseService.getAll();
+      res.json(data);
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  async getOne(req: Request, res: Response, next: NextFunction) {
+    try {
+      const data = await LicenseService.getOne(req.params.id);
       res.json(data);
     } catch (err) {
       next(err);
@@ -19,11 +28,8 @@ export const NewsController = {
         price: req.body.price,
         media_limit: req.body.media_limit,
         space_limit: req.body.space_limit,
-      }
-      const data = await LicenseService.create(
-        req.accessToken!,
-        body
-      );
+      };
+      const data = await LicenseService.create(req.accessToken!, body);
 
       res.status(201).json(data);
     } catch (err) {
@@ -37,7 +43,7 @@ export const NewsController = {
         price: req.body.price,
         media_limit: req.body.media_limit,
         space_limit: req.body.space_limit,
-      }
+      };
       const data = await LicenseService.update(
         req.accessToken!,
         req.params.id,

@@ -1,4 +1,4 @@
-import { RoleEnum } from "../../constants/role";
+import { RoleEnum } from '../../constants/role';
 
 export interface UserModel {
   id: string;
@@ -9,4 +9,5 @@ export interface UserModel {
   role: RoleEnum;
   position?: string;
   created_at: string;
+  license?: string;
 }

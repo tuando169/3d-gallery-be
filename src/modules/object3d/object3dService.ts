@@ -1,13 +1,15 @@
 import { supabaseAdmin } from '../../config/supabase';
 import { Object3DModel } from './object3dModel';
 import {
-  deleteOldFileFromBucket,
+  deleteFileFromBucket,
+  getOwnedMediaCount,
   getUserFromToken,
   uploadFileToBucket,
 } from '../../util';
 import { supabaseService } from '../supabase/supabaseService';
 import { RoleEnum } from '../../constants/role';
 import { ThirdPartyService } from '../third-party/thirdPartyService';
+import { LicenseService } from '../license/licenseService';
 
 const TABLE = 'object3d';
 const BUCKET = 'object3d';
@@ -23,16 +25,6 @@ export const Object3DService = {
     return await supabaseService.findMany(token, TABLE, '*', (q) =>
       q.eq('owner_id', user?.user?.id)
     );
-  },
-
-  async gen3DFromImage(
-    token: string,
-    file: Express.Multer.File
-  ): Promise<File> {
-    const outputFile = await ThirdPartyService.gen3DFromImage(file);
-    console.log(outputFile);
-
-    return outputFile;
   },
 
   async getOne(
@@ -53,12 +45,30 @@ export const Object3DService = {
   ): Promise<Object3DModel> {
     if (!file) throw { status: 400, message: `Missing file "model"` };
 
-    const ownerId = (await getUserFromToken(token))?.user?.id;
-
+    const user = await getUserFromToken(token);
+    const owner_id = user?.user?.id;
+    const role = user?.user?.role;
+    if (role !== RoleEnum.Admin && owner_id) {
+      const mediaCount = await getOwnedMediaCount(token);
+      const license = await LicenseService.getOne(user.user?.license || '');
+      if (!license) {
+        throw {
+          status: 403,
+          message: 'You need a license to upload images.',
+        };
+      }
+      const maxMedia = license.media_limit || 0;
+      if (mediaCount >= maxMedia) {
+        throw {
+          status: 429,
+          message: `Media upload limit reached. Max allowed: ${maxMedia}.`,
+        };
+      }
+    }
     const fileUrl = await uploadFileToBucket(BUCKET, file);
 
     const payload: Partial<Object3DModel> = {
-      owner_id: ownerId,
+      owner_id: owner_id,
       file_url: fileUrl,
       title: body.title,
       metadata: body.metadata,
@@ -85,7 +95,7 @@ export const Object3DService = {
     if (file) {
       payload.file_url = await uploadFileToBucket(BUCKET, file);
       const oldRecord = await Object3DService.getOne(token, objectId);
-      if (oldRecord) await deleteOldFileFromBucket(BUCKET, oldRecord.file_url);
+      if (oldRecord) await deleteFileFromBucket(BUCKET, oldRecord.file_url);
     }
 
     return await supabaseService.updateById(token, TABLE, objectId, payload);
@@ -96,10 +106,15 @@ export const Object3DService = {
     try {
       await supabaseService.deleteById(token, TABLE, id);
       const oldRecord = await Object3DService.getOne(token, id);
-      if (oldRecord) await deleteOldFileFromBucket(BUCKET, oldRecord.file_url);
+      if (oldRecord) await deleteFileFromBucket(BUCKET, oldRecord.file_url);
       return Promise.resolve();
     } catch (err) {
       return Promise.reject(err);
     }
+  },
+
+  async getOwnedObjectCount(token: string): Promise<number> {
+    const list = await Object3DService.getAll(token);
+    return Promise.resolve(list.length);
   },
 };

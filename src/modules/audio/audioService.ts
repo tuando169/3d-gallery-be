@@ -1,25 +1,24 @@
-import axios from "axios";
-import FormData from "form-data";
 import {
-  deleteOldFileFromBucket,
   getUserFromToken,
-  isSuccessfulResponse,
   uploadFileToBucket,
-} from "../../util";
-import { supabaseService } from "../supabase/supabaseService";
-import { AudioModel } from "./audioModel";
-import { RoleEnum } from "../../constants/role";
+  deleteFileFromBucket,
+  getOwnedMediaCount,
+} from '../../util';
+import { supabaseService } from '../supabase/supabaseService';
+import { AudioModel } from './audioModel';
+import { RoleEnum } from '../../constants/role';
+import { LicenseService } from '../license/licenseService';
 
-const TABLE = "audios";
-const BUCKET = "audio";
+const TABLE = 'audios';
+const BUCKET = 'audio';
 
 export const AudioService = {
   async getList(token: string): Promise<AudioModel[]> {
     const user = await getUserFromToken(token);
     if (user.user?.role == RoleEnum.Admin)
-      return await supabaseService.findMany(token, TABLE, "*", (q: any) => q);
-    return await supabaseService.findMany(token, TABLE, "*", (q: any) =>
-      q.eq("owner_id", user?.user?.id)
+      return await supabaseService.findMany(token, TABLE, '*', (q: any) => q);
+    return await supabaseService.findMany(token, TABLE, '*', (q: any) =>
+      q.eq('owner_id', user?.user?.id)
     );
   },
 
@@ -44,37 +43,29 @@ export const AudioService = {
     if (!hasFile) {
       throw { status: 400, message: `Provide "file" or "file_url".` };
     }
-    const ownerId = (await getUserFromToken(token))?.user?.id;
-
-    // Check bucket
-    const exists = await supabaseService.bucketExists(BUCKET);
-    console.log(exists);
-
-    if (!exists) throw { status: 400, message: `Bucket "${BUCKET}" missing.` };
-
-    const meta = await supabaseService.getBucketInfo(BUCKET);
-    const isPublicBucket = !!meta?.public;
-
-    const safe = (file.originalname || "upload.bin").replace(/[^\w.\-]/g, "_");
-    const path = `${Date.now()}_${safe}`;
-
-    // Upload
-    await supabaseService.uploadObject(
-      BUCKET,
-      path,
-      file.buffer,
-      file.mimetype,
-      true
-    );
-
-    // Build URL
-    const fileUrl = isPublicBucket
-      ? supabaseService.getPublicUrl(BUCKET, path)
-      : await supabaseService.createSignedUrl(BUCKET, path);
-
+    const user = await getUserFromToken(token);
+    const owner_id = user?.user?.id;
+    const role = user?.user?.role;
+    if (role !== RoleEnum.Admin && owner_id) {
+      const mediaCount = await getOwnedMediaCount(token);
+      const license = await LicenseService.getOne(user.user?.license || '');
+      if (!license) {
+        throw {
+          status: 403,
+          message: 'You need a license to upload audio.',
+        };
+      }
+      const maxMedia = license.media_limit || 0;
+      if (mediaCount >= maxMedia) {
+        throw {
+          status: 429,
+          message: `Media upload limit reached. Max allowed: ${maxMedia}.`,
+        };
+      }
+    }
     const payload: Partial<AudioModel> = {
-      file_url: fileUrl,
-      owner_id: ownerId,
+      file_url: await uploadFileToBucket(BUCKET, file),
+      owner_id: owner_id,
       title: body.title,
       metadata: body.metadata,
     };
@@ -99,7 +90,7 @@ export const AudioService = {
       payload.file_url = await uploadFileToBucket(BUCKET, file);
 
       const oldRecord = await AudioService.getOne(token, id);
-      if (oldRecord) await deleteOldFileFromBucket(BUCKET, oldRecord.file_url);
+      if (oldRecord) await deleteFileFromBucket(BUCKET, oldRecord.file_url);
     }
     return await supabaseService.updateById<AudioModel>(
       token,
@@ -114,9 +105,14 @@ export const AudioService = {
     try {
       await supabaseService.deleteById(token, TABLE, mediaId);
       const oldRecord = await AudioService.getOne(token, mediaId);
-      if (oldRecord) await deleteOldFileFromBucket(BUCKET, oldRecord.file_url);
+      if (oldRecord) await deleteFileFromBucket(BUCKET, oldRecord.file_url);
     } catch (err) {
       return Promise.reject(err);
     }
+  },
+
+  async getOwnedAudioCount(token: string): Promise<number> {
+    const list = await AudioService.getList(token);
+    return Promise.resolve(list.length);
   },
 };

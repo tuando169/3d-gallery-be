@@ -4,6 +4,8 @@ import { VisibilityEnum } from '../../constants/visibility';
 import { RoomCollabModel, RoomModel } from './roomModel';
 import { supabaseService } from '../supabase/supabaseService';
 import { UserModel } from '../user/userModel';
+import { RoleEnum } from '../../constants/role';
+import { LicenseService } from '../license/licenseService';
 
 const TABLE = 'rooms';
 const COLLAB_TABLE = 'room_collaborators';
@@ -17,9 +19,9 @@ function normalizeTags(body: any) {
     const trimmed = body.tags.trim();
     body.tags = trimmed
       ? trimmed
-        .split(',')
-        .map((s: string) => s.trim())
-        .filter(Boolean)
+          .split(',')
+          .map((s: string) => s.trim())
+          .filter(Boolean)
       : [];
   }
 }
@@ -112,6 +114,31 @@ export const RoomService = {
     thumbnail?: Express.Multer.File
   ): Promise<RoomModel | undefined> {
     const user = await getUserFromToken(token);
+    const owner_id = user?.user?.id;
+    const role = user?.user?.role;
+    if (role !== RoleEnum.Admin && owner_id) {
+      const roomCount = (await RoomService.getList(token)).filter(
+        (r) => r.owner_id === owner_id
+      ).length;
+      const license = await LicenseService.getOne(user.user?.license || '');
+
+      if (!license) {
+        throw {
+          status: 403,
+          message: 'You need a license to create rooms.',
+        };
+      }
+      const maxRooms = license.space_limit || 0;
+      console.log(roomCount);
+      console.log(maxRooms);
+
+      if (roomCount >= maxRooms) {
+        throw {
+          status: 429,
+          message: `Room creation limit reached. Max allowed: ${maxRooms}.`,
+        };
+      }
+    }
     if (!isAdmin(user.user)) body.owner_id = user.user?.id;
 
     normalizeTags(body);

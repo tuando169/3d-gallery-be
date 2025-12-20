@@ -1,25 +1,27 @@
-import axios from "axios";
-import FormData from "form-data";
-import {  ImageModel } from "./imageModel";
+import axios, { get } from 'axios';
+import FormData from 'form-data';
+import { ImageModel } from './imageModel';
 import {
-  deleteOldFileFromBucket,
+  deleteFileFromBucket,
+  getOwnedMediaCount,
   getUserFromToken,
   isSuccessfulResponse,
   uploadFileToBucket,
-} from "../../util";
-import { supabaseService } from "../supabase/supabaseService";
-import { RoleEnum } from "../../constants/role";
+} from '../../util';
+import { supabaseService } from '../supabase/supabaseService';
+import { RoleEnum } from '../../constants/role';
+import { LicenseService } from '../license/licenseService';
 
-const TABLE = "images";
-const BUCKET = "images";
+const TABLE = 'images';
+const BUCKET = 'images';
 
 export const ImageService = {
   async getList(token: string): Promise<ImageModel[]> {
     const user = await getUserFromToken(token);
     if (user.user?.role == RoleEnum.Admin)
-      return await supabaseService.findMany(token, TABLE, "*", (q: any) => q);
-    return await supabaseService.findMany(token, TABLE, "*", (q: any) =>
-      q.eq("owner_id", user?.user?.id)
+      return await supabaseService.findMany(token, TABLE, '*', (q: any) => q);
+    return await supabaseService.findMany(token, TABLE, '*', (q: any) =>
+      q.eq('owner_id', user?.user?.id)
     );
   },
 
@@ -44,34 +46,30 @@ export const ImageService = {
       throw { status: 400, message: `Provide "file".` };
     }
 
-    const exists = await supabaseService.bucketExists(BUCKET);
-    console.log(exists);
+    const user = await getUserFromToken(token);
+    const owner_id = user?.user?.id;
+    const role = user?.user?.role;
+    if (role !== RoleEnum.Admin && owner_id) {
+      const mediaCount = await getOwnedMediaCount(token);
+      const license = await LicenseService.getOne(user.user?.license || '');
 
-    if (!exists) throw { status: 400, message: `Bucket "${BUCKET}" missing.` };
-
-    const meta = await supabaseService.getBucketInfo(BUCKET);
-    const isPublicBucket = !!meta?.public;
-
-    const safe = (file.originalname || "upload.bin").replace(/[^\w.\-]/g, "_");
-    const path = `${Date.now()}_${safe}`;
-
-
-    await supabaseService.uploadObject(
-      BUCKET,
-      path,
-      file.buffer,
-      file.mimetype,
-      true
-    );
-
-    const fileUrl = isPublicBucket
-      ? supabaseService.getPublicUrl(BUCKET, path)
-      : await supabaseService.createSignedUrl(BUCKET, path);
-
-    const owner_id = (await getUserFromToken(token)).user?.id;
+      if (!license) {
+        throw {
+          status: 403,
+          message: 'You need a license to upload images.',
+        };
+      }
+      const maxMedia = license.media_limit || 0;
+      if (mediaCount >= maxMedia) {
+        throw {
+          status: 429,
+          message: `Media upload limit reached. Max allowed: ${maxMedia}.`,
+        };
+      }
+    }
 
     const payload: Partial<ImageModel> = {
-      file_url: fileUrl,
+      file_url: await uploadFileToBucket(BUCKET, file!),
       owner_id: owner_id,
       title: body.title,
     };
@@ -93,7 +91,7 @@ export const ImageService = {
     const oldRecord = await ImageService.getOne(token, id);
     if (file) {
       payload.file_url = await uploadFileToBucket(BUCKET, file);
-      if (oldRecord) await deleteOldFileFromBucket(BUCKET, oldRecord.file_url);
+      if (oldRecord) await deleteFileFromBucket(BUCKET, oldRecord.file_url);
     }
 
     return await supabaseService.updateById<ImageModel>(
@@ -106,13 +104,18 @@ export const ImageService = {
 
   async delete(token: string, mediaId: string): Promise<void> {
     try {
-      await supabaseService.deleteById(token, TABLE, mediaId);
       const oldRecord = await ImageService.getOne(token, mediaId);
-      if (oldRecord) await deleteOldFileFromBucket(BUCKET, oldRecord.file_url);
+      if (oldRecord) await deleteFileFromBucket(BUCKET, oldRecord.file_url);
+      await supabaseService.deleteById(token, TABLE, mediaId);
 
       return Promise.resolve();
     } catch (err) {
       return Promise.reject(err);
     }
+  },
+
+  async getOwnedImageCount(token: string): Promise<number> {
+    const list = await ImageService.getList(token);
+    return Promise.resolve(list.length);
   },
 };

@@ -1,35 +1,24 @@
-import { NewsItemTypeEnum } from "../../constants/newsItemType";
-import { getUserFromToken, uploadFileToBucket } from "../../util";
-import { supabaseService } from "../supabase/supabaseService";
-import { LicenseModel, LicenseUploadModel } from "./licenseModel";
+import { NewsItemTypeEnum } from '../../constants/newsItemType';
+import { getUserFromToken, uploadFileToBucket } from '../../util';
+import { supabaseService } from '../supabase/supabaseService';
+import { LicenseModel, LicenseUploadModel } from './licenseModel';
 
-const TABLE = "licenses";
+const TABLE = 'licenses';
 
 export const LicenseService = {
   async getAll(): Promise<LicenseModel[]> {
-    return await supabaseService.findAllAdmin(TABLE, "*", (q: any) => q);
+    return await supabaseService.findAllAdmin(TABLE, '*', (q: any) => q);
   },
 
   async create(token: string, body: LicenseUploadModel) {
-
-
     return await supabaseService.create(token, TABLE, body);
   },
   async getOne(id: string): Promise<LicenseModel | undefined> {
-    return await supabaseService.findByIdAdmin(TABLE, id);
+    const list = await LicenseService.getAll();
+    return Promise.resolve(list.find((item: LicenseModel) => item.id === id));
   },
-  async update(
-    token: string,
-    id: string,
-    body: LicenseUploadModel,
-  ) {
-
-    return await supabaseService.updateById(
-      token,
-      TABLE,
-      id,
-      body
-    );
+  async update(token: string, id: string, body: LicenseUploadModel) {
+    return await supabaseService.updateById(token, TABLE, id, body);
   },
 
   async remove(token: string, id: string): Promise<boolean> {
