@@ -4,7 +4,7 @@ import { UserService } from './userService';
 export const UserController = {
   async getAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const data = await UserService.getAll();
+      const data = await UserService.getAll(req.accessToken!);
       res.json(data);
     } catch (err) {
       next(err);
@@ -62,7 +62,7 @@ export const UserController = {
   /** DELETE /users/:id */
   async remove(req: Request, res: Response, next: NextFunction) {
     try {
-      const deleted = await UserService.remove(req.params.id);
+      const deleted = await UserService.remove(req.accessToken!, req.params.id);
       res.json(deleted);
     } catch (err) {
       next(err);

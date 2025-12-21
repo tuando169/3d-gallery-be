@@ -1,11 +1,12 @@
-import { NewsItemTypeEnum } from "../../constants/newsItemType";
-import { getUserFromToken, uploadFileToBucket } from "../../util";
-import { supabaseService } from "../supabase/supabaseService";
-import { NewsModel, NewsUploadModel } from "./newsModel";
+import { NewsItemTypeEnum } from '../../constants/newsItemType';
+import { RoleEnum } from '../../constants/role';
+import { getUserFromToken, uploadFileToBucket } from '../../util';
+import { supabaseService } from '../supabase/supabaseService';
+import { NewsModel, NewsUploadModel } from './newsModel';
 
-const TABLE = "magazines";
-const IMAGE_BUCKET = "images";
-const OBJECT3D_BUCKET = "object3d";
+const TABLE = 'magazines';
+const IMAGE_BUCKET = 'images';
+const OBJECT3D_BUCKET = 'object3d';
 
 async function convertLayoutJson(
   layout_json: any[],
@@ -34,7 +35,7 @@ function extractFiles(files: Express.Multer.File[]) {
   const itemFiles: Record<number, Express.Multer.File> = {};
 
   for (const file of files) {
-    if (file.fieldname === "thumbnail") {
+    if (file.fieldname === 'thumbnail') {
       thumbnailFile = file;
       continue;
     }
@@ -51,17 +52,21 @@ function extractFiles(files: Express.Multer.File[]) {
 
 export const NewsService = {
   async getAll(token: string): Promise<NewsModel[]> {
-    return await supabaseService.findAllAdmin(TABLE, "*", (q: any) => q);
+    return await supabaseService.findAllAdmin(TABLE, '*', (q: any) => q);
   },
 
   async create(token: string, body: any, files: Express.Multer.File[]) {
+    const user = await getUserFromToken(token);
+    if (!user.user || user.user?.role !== RoleEnum.Admin)
+      throw { status: 403, message: 'Forbidden' };
+
     const { title, slug, description, visibility } = body;
 
     let layout_json = [];
     try {
       layout_json = JSON.parse(body.layout_json);
     } catch (err) {
-      throw new Error("layout_json không hợp lệ");
+      throw new Error('layout_json không hợp lệ');
     }
 
     const { thumbnailFile, itemFiles } = extractFiles(files);
@@ -73,7 +78,6 @@ export const NewsService = {
 
     layout_json = await convertLayoutJson(layout_json, itemFiles);
 
-    const user = await getUserFromToken(token);
     const owner_id = user?.user?.id;
 
     const newsInsertPayload = {
@@ -86,7 +90,7 @@ export const NewsService = {
       layout_json,
     };
 
-    console.log("DEBUG → CREATE PAYLOAD:", newsInsertPayload);
+    console.log('DEBUG → CREATE PAYLOAD:', newsInsertPayload);
 
     return await supabaseService.create(token, TABLE, newsInsertPayload);
   },
@@ -97,13 +101,17 @@ export const NewsService = {
     body: any,
     files: Express.Multer.File[]
   ) {
+    const user = await getUserFromToken(token);
+    if (!user.user || user.user?.role !== RoleEnum.Admin)
+      throw { status: 403, message: 'Forbidden' };
+
     const { title, slug, description, visibility } = body;
 
     let layout_json = [];
     try {
       layout_json = JSON.parse(body.layout_json);
     } catch (err) {
-      throw new Error("layout_json không hợp lệ");
+      throw new Error('layout_json không hợp lệ');
     }
 
     const { thumbnailFile, itemFiles } = extractFiles(files);
@@ -118,7 +126,7 @@ export const NewsService = {
       layout_json,
     };
 
-    console.log("DEBUG → UPDATE PAYLOAD:", newsUpdatePayload);
+    console.log('DEBUG → UPDATE PAYLOAD:', newsUpdatePayload);
 
     return await supabaseService.updateById(
       token,
@@ -129,6 +137,10 @@ export const NewsService = {
   },
 
   async remove(token: string, id: string): Promise<boolean> {
+    const user = await getUserFromToken(token);
+    if (!user.user || user.user?.role !== RoleEnum.Admin)
+      throw { status: 403, message: 'Forbidden' };
+
     return await supabaseService.deleteById(token, TABLE, id);
   },
 };

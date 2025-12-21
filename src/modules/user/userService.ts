@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '../../config/supabase';
-import { uploadFileToBucket } from '../../util';
+import { RoleEnum } from '../../constants/role';
+import { getUserFromToken, uploadFileToBucket } from '../../util';
 import { UserModel } from './userModel';
 
 export interface UserPayload {
@@ -14,7 +15,11 @@ export const UserService = {
   /**
    * Get all users with pagination
    */
-  async getAll(): Promise<UserModel[]> {
+  async getAll(token: string): Promise<UserModel[]> {
+    const user = await getUserFromToken(token);
+    if (!user.user || user.user?.role !== RoleEnum.Admin)
+      throw { status: 403, message: 'Forbidden' };
+
     const { data, error } = await supabaseAdmin
       .from('users')
       .select('*')
@@ -78,7 +83,11 @@ export const UserService = {
   /**
    * Delete a user
    */
-  async remove(id: string): Promise<boolean> {
+  async remove(token: string, id: string): Promise<boolean> {
+    const user = await getUserFromToken(token);
+    if (!user.user || user.user?.role !== RoleEnum.Admin)
+      throw { status: 403, message: 'Forbidden' };
+
     const { error } = await supabaseAdmin.from('users').delete().eq('id', id);
 
     if (error) throw error;

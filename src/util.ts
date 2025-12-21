@@ -75,6 +75,8 @@ export async function deleteFileFromBucket(
   publicUrl: string
 ) {
   try {
+    console.log(publicUrl);
+
     if (!publicUrl) return;
 
     const url = new URL(publicUrl);
