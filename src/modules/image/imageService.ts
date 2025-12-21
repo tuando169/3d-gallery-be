@@ -1,5 +1,3 @@
-import axios, { get } from 'axios';
-import FormData from 'form-data';
 import { ImageModel } from './imageModel';
 import {
   deleteFileFromBucket,
