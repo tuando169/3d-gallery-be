@@ -6,6 +6,7 @@ import { supabaseService } from '../supabase/supabaseService';
 import { UserModel } from '../user/userModel';
 import { RoleEnum } from '../../constants/role';
 import { LicenseService } from '../license/licenseService';
+import r from '../user/userRoute';
 
 const TABLE = 'rooms';
 const COLLAB_TABLE = 'room_collaborators';
@@ -31,8 +32,23 @@ export const RoomService = {
     const data = await supabaseService.findAllAdmin(TABLE, '*', (q) =>
       q.eq('visibility', VisibilityEnum.Public)
     );
-    return Promise.resolve(data.filter((room) => room.type != 'template'));
+
+    const filteredData = data.filter((room) => room.type !== 'template');
+
+    const rooms = await Promise.all(
+      filteredData.map(async (room) => {
+        const author = await UserService.getById(room.owner_id);
+
+        return {
+          ...room,
+          author: author?.name || '',
+        };
+      })
+    );
+
+    return Promise.resolve(rooms);
   },
+
   async getList(token: string): Promise<RoomModel[]> {
     try {
       const user = await getUserFromToken(token);
@@ -87,13 +103,17 @@ export const RoomService = {
     const data = await supabaseService.findAllAdmin(TABLE, '*', (q) =>
       q.eq('type', 'template')
     );
-
+    const rooms = await Promise.all(
+      data.map(async (room) => {
+        const author = await UserService.getById(room.owner_id);
+        room.author = author?.name || '';
+      })
+    );
     return Promise.resolve(data);
   },
 
   async getOne(token: string, roomId: string): Promise<RoomModel | undefined> {
     const user = await getUserFromToken(token);
-    console.log(user);
 
     if (isAdmin(user.user)) {
       const rooms = await supabaseService.findAllAdmin(TABLE, '*', (q: any) =>
@@ -105,7 +125,8 @@ export const RoomService = {
     if (!room) {
       return undefined;
     }
-    return room;
+    room.author = (await UserService.getById(room.owner_id))?.name || '';
+    return Promise.resolve(room);
   },
 
   async create(
