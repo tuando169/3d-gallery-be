@@ -10,19 +10,23 @@ const captionUrl = baseUrl + '/caption';
 
 export const ThirdPartyService = {
   async isValidImage(file: Express.Multer.File): Promise<boolean> {
-    const form = new FormData();
-    form.append('image', file.buffer, {
-      filename: file.originalname,
-      contentType: file.mimetype,
-    });
+    try {
+      const form = new FormData();
+      form.append('image', file.buffer, {
+        filename: file.originalname,
+        contentType: file.mimetype,
+      });
 
-    const analyze = await axios.post(analyzeUrl, form, {
-      headers: form.getHeaders(),
-    });
+      const analyze = await axios.post(analyzeUrl, form, {
+        headers: form.getHeaders(),
+      });
 
-    if (analyze && isSuccessfulResponse(analyze)) {
-      const data: ImageAnalyzeModel = analyze.data;
-      if (data.is_nsfw) return Promise.resolve(false);
+      if (analyze && isSuccessfulResponse(analyze)) {
+        const data: ImageAnalyzeModel = analyze.data;
+        if (data.is_nsfw) return Promise.resolve(false);
+      }
+    } catch {
+      return Promise.resolve(true);
     }
     return Promise.resolve(true);
   },
