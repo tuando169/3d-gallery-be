@@ -46,7 +46,7 @@ export async function uploadFileToBucket(
 
     if (!isValid) {
       throw {
-        status: 422,
+        status: 444,
         message: 'Media file is not approved!',
       };
     }
