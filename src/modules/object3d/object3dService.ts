@@ -48,7 +48,7 @@ export const Object3DService = {
     const user = await getUserFromToken(token);
     const owner_id = user?.user?.id;
     const role = user?.user?.role;
-    if (role !== RoleEnum.Admin && owner_id) {
+    if (role !== RoleEnum.Admin && role !== RoleEnum.Designer && owner_id) {
       const mediaCount = await getOwnedMediaCount(token);
       const license = await LicenseService.getOne(user.user?.license || '');
       if (!license) {
