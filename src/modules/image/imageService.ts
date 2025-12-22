@@ -70,6 +70,7 @@ export const ImageService = {
       file_url: await uploadFileToBucket(BUCKET, file!),
       owner_id: owner_id,
       title: body.title,
+      ...body
     };
 
     return await supabaseService.create<ImageModel>(token, TABLE, payload);
@@ -85,6 +86,7 @@ export const ImageService = {
       id: id,
       room_ids: body.room_ids,
       title: body.title,
+      ...body
     };
     const oldRecord = await ImageService.getOne(token, id);
     if (file) {
