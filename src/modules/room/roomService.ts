@@ -35,7 +35,7 @@ export const RoomService = {
 
     const filteredData = data.filter((room) => room.type !== 'template');
 
-    const rooms = await Promise.all(
+    const rooms: RoomModel[] = await Promise.all(
       filteredData.map(async (room) => {
         const author = await UserService.getById(room.owner_id);
 
@@ -46,7 +46,14 @@ export const RoomService = {
       })
     );
 
-    return Promise.resolve(rooms);
+    return Promise.resolve(
+      rooms.sort((a, b) => {
+        if (!a.created_at || !b.created_at) return 0;
+        return (
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+      })
+    );
   },
 
   async getList(token: string): Promise<RoomModel[]> {
@@ -90,10 +97,20 @@ export const RoomService = {
         authors.map((u) => [u?.id, u?.name])
       );
 
-      return data.map((room: any) => ({
-        ...room,
-        author: authorMap[room.owner_id] ?? null,
-      }));
+      return Promise.resolve(
+        data
+          .map((room: RoomModel) => ({
+            ...room,
+            author: authorMap[room.owner_id] ?? null,
+          }))
+          .sort((a, b) => {
+            if (!a.created_at || !b.created_at) return 0;
+            return (
+              new Date(b.created_at).getTime() -
+              new Date(a.created_at).getTime()
+            );
+          })
+      );
     } catch (err) {
       throw err;
     }
@@ -109,7 +126,14 @@ export const RoomService = {
         room.author = author?.name || '';
       })
     );
-    return Promise.resolve(data);
+    return Promise.resolve(
+      data.sort((a, b) => {
+        if (!a.created_at || !b.created_at) return 0;
+        return (
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+      })
+    );
   },
 
   async getOne(token: string, roomId: string): Promise<RoomModel | undefined> {
