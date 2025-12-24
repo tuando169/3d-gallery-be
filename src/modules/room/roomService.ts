@@ -196,7 +196,7 @@ export const RoomService = {
     } else if (thumbnail) {
       payload.thumbnail = await uploadFileToBucket('images', thumbnail);
     }
-
+    payload.room_json = JSON.parse(body.room_json || '{}');
     console.log(payload);
 
     return supabaseService.create(token, TABLE, payload);
@@ -255,6 +255,7 @@ export const RoomService = {
     if (body.thumbnailUrl) body.thumbnail = body.thumbnailUrl;
     else if (thumbnail)
       body.thumbnail = await uploadFileToBucket('images', thumbnail);
+    body.room_json = JSON.parse(body.room_json || '{}');
 
     return await supabaseService.updateById(token, TABLE, roomId, body);
   },
